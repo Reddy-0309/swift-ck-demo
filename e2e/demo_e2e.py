@@ -276,7 +276,7 @@ def main() -> None:
             page.locator(".panel", has_text="Synthetic Logistics · package 1").get_by_role("button", name="Download").click()
         assert dl.value.suggested_filename == "swift-knowledge-logistics-v1.zip", dl.value.suggested_filename
         page.goto(BASE + "/activity")
-        expect(page.get_by_role("cell", name="Exported a knowledge package")).to_be_visible()
+        expect(page.get_by_role("cell", name="Exported a knowledge package")).to_have_count(2)
         print("console: package exported, downloaded and logged")
 
         page.goto(BASE + "/packages")
