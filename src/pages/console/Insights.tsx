@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
+import { CLIENTS } from "../../domain/clients";
 import { useEngine } from "../../app/engine";
 import { ROLE_LABELS } from "../../app/people";
 import { ACTION_LABELS } from "../../app/selectors";
 import { dashboard, periodStart, reviewEffort, type Dashboard, type IndicatorResult } from "../../domain/analytics";
 import { CONTEXT_LABELS } from "../../domain/labels";
 import { LANGUAGE_NAMES, isLanguage } from "../../domain/types";
-import { ErrorNotice, Notice, PageHeader, Panel, Pill, Segmented, Stat, Tabs, formatDate } from "../../ui/kit";
+import { ClientSelect, ErrorNotice, Notice, PageHeader, Panel, Pill, Segmented, Stat, Tabs, formatDate } from "../../ui/kit";
 
 type Period = "7" | "30" | "90";
 
@@ -153,6 +155,9 @@ function ReviewEffort() {
 
 export default function Insights() {
   const { state, can } = useEngine();
+  const [params, setParams] = useSearchParams();
+  const client = CLIENTS.some((c) => c.id === params.get("client")) ? (params.get("client") as string) : "";
+  const setClient = (id: string) => setParams(id ? { client: id } : {}, { replace: true });
   const [period, setPeriod] = useState<Period>("30");
   const [tab, setTab] = useState<"usage" | "effort">("usage");
   const [board, setBoard] = useState<Dashboard | null>(null);
@@ -161,14 +166,15 @@ export default function Insights() {
 
   useEffect(() => {
     let cancelled = false;
-    dashboard(state, since).then(
+    setBoard(null);
+    dashboard(state, since, client).then(
       (d) => !cancelled && setBoard(d),
       (e) => !cancelled && setError(e),
     );
     return () => {
       cancelled = true;
     };
-  }, [state, since]);
+  }, [state, since, client]);
 
   if (!can("analytics.view")) return <div className="page"><Notice tone="warn">Your role cannot see insights.</Notice></div>;
   const get = (id: string) => board?.indicators.find((i) => i.id === id);
@@ -176,15 +182,17 @@ export default function Insights() {
   const answered = outcomes?.rows.find((r) => r.keys.outcome === "answer")?.value ?? 0;
   const practice = get("practice_by_mode");
   const independent = practice?.rows.find((r) => r.keys.mode === "independent");
-  const ruleText = Object.fromEntries(Object.entries(state.scenarios[0]?.definition.text.en?.rules ?? {}));
+  const scenarioTitle = Object.fromEntries(state.scenarios.map((x) => [x.scenarioKey, x.title]));
+  const clientName = CLIENTS.find((c) => c.id === client)?.name;
 
   return (
     <div className="page">
       <PageHeader
         title="Insights"
-        subtitle="What workers asked for, what they got, and where guidance is missing."
+        subtitle={clientName ? `${clientName}: what learners asked for on the job, what they got, and where guidance is missing.` : "What learners asked for on the job, what they got, and where guidance is missing, across every client."}
         actions={
           <>
+            <ClientSelect value={client} onChange={setClient} />
             <Pill tone="amber" plain>
               {board?.dataLabel ?? "Loading"}
             </Pill>
@@ -240,7 +248,7 @@ export default function Insights() {
             ].map(([id, keys]) => {
               const indicator = get(id as string);
               if (!indicator) return null;
-              const shown = id === "rule_accuracy_independent" ? { ...indicator, rows: indicator.rows.map((r) => ({ ...r, keys: { rule: ruleText[r.keys.rule ?? ""] ?? r.keys.rule ?? "" } })) } : indicator;
+              const shown = id === "rule_accuracy_independent" ? { ...indicator, rows: indicator.rows.map((r) => ({ ...r, keys: { scenario: scenarioTitle[r.keys.scenario ?? ""] ?? r.keys.scenario ?? "" } })) } : indicator;
               return (
                 <Panel key={id as string} title={indicator.title}>
                   <Bars indicator={shown} keys={keys as string[] | undefined} />

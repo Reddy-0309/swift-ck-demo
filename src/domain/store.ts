@@ -6,7 +6,7 @@ import { clear, get, set } from "idb-keyval";
 import { ImmutableRecordError, NotFound, newId, nowIso, sha256, type Principal } from "./core";
 import { IMMUTABLE_STATES, type AuditEntry, type DemoState } from "./types";
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 const STATE_KEY = "sck-demo-state";
 const FILE_PREFIX = "sck-demo-file:";
 const EVENT_PREFIX = "sck-demo-events:";

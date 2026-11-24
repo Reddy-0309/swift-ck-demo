@@ -14,7 +14,7 @@ Kannada, Tamil, Telugu, Hindi, Malayalam, Marathi and Bengali.
 ```bash
 npm install
 npm run dev        # http://localhost:5173
-npm test           # 32 unit/integration tests (vitest)
+npm test           # 35 unit/integration tests (vitest)
 npm run build      # type-check + production build into dist/
 ```
 
@@ -40,29 +40,57 @@ Alternatively, run `npx vercel --prod` from this folder.
 
 **Reset demo data** in the sidebar restores the original seeded state. Data is stored per browser, so each visitor gets their own copy.
 
-## Two workspaces
+## What it shows
 
-Sign in by choosing a person. Frontline workers land in the **Field app**, and the
-knowledge team lands in the **Console**.
+Swift Solutions builds e-learning programmes for client organisations. Swift Knowledge adds what learners need after the course: the client's approved procedures on the job, in their own language, with practice, and with evidence for the client. The demo has four fictional clients:
 
-- **Field app** (phone-first, fully translated). Pick a task, answer one question about the situation if asked, and get the approved steps as safety signs, with slides, diagrams and audio. A **Practice** tab offers guided runs with hints and independent checks without them. If nothing approved fits, the app says so plainly and tells the worker who to ask.
-- **Console** (desktop). **Home** shows a "Waiting for you" inbox for the signed-in person. **Knowledge** has each procedure's content, languages, media and history. **Sources** handles SOP uploads. **Insights** shows usage over 7, 30 or 90 days, reconciled against the raw events. **Packages** exports content, and **Activity** is the audit log.
+| Client | Programme | Delivery | Languages |
+|---|---|---|---|
+| Synthetic Logistics Co. | Last-mile delivery essentials | Model A package | all 8 |
+| Ironleaf Components (manufacturing) | Plant safety and equipment care | Model B governed service | all 8 for the conveyor; Tamil, Kannada and Hindi for the others |
+| Tamarind Co-operative Bank | Branch operations onboarding | Model A, restricted guide behind the bank's backend | English, Kannada, Hindi |
+| Corner Basket Stores (retail) | Store safety for new joiners | Model A package | English, Hindi, Marathi (Bengali waiting for approval) |
 
-The demo data covers 90 days of synthetic activity from 124 pseudonymous workers, about
-8,700 requests.
+There are 11 live guides and 2 waiting for an expert, plus 4 practice scenarios. The sample data holds 90 days of synthetic activity from 234 pseudonymous workers, about 18,000 events.
+
+**Knowledge Studio** (for the Swift team) has these pages:
+
+- **Home:** what is waiting for you, and how ready each client programme is.
+- **Clients:** each e-learning module with its on-the-job guides, practice, delivery model, adoption stage, language coverage and packages.
+- **Knowledge:** every guide, filterable by client.
+- **Sources:** SOP uploads.
+- **Insights:** usage per client and period, every figure reconciled with documented SQL.
+- **Packages:** one versioned package per client.
+- **Activity:** the audit log.
+- **Acceptance checklist:** the D07 Appendix A checks, run live against a copy of the data.
+
+**Worker app** (for client learners, phone-first, in 8 languages) has three tabs:
+
+- **Guidance:** the client's tasks, giving the exact approved steps or a clear "no approved answer". If a guide is not yet approved in the worker's language, the app offers the languages it is approved in.
+- **My course:** the e-learning modules, each with its guides and practice.
+- **Practice:** guided runs and independent checks.
 
 ## Try it
 
 | Person | What to try |
 |---|---|
-| **Arjun** (delivery) | Parcel pickup in any of the 8 languages; *Leaking contents* (no approved answer); search in native script; Practice. |
-| **Lakshmi** (maintenance) | Conveyor check: it asks which line, then shows the safety-critical steps with diagrams. |
-| **Asha** (author) | Sources: upload the sample *pickup SOP revision 2*. Live pickup guidance is suspended until the new version is approved. Create drafts, translate (codes, units and numbers are protected), and make slides. |
+| **Arjun** (Synthetic Logistics) | Parcel pickup in any of the 8 languages; *Leaking contents* (no approved answer); My course; Practice. |
+| **Lakshmi / Karthik** (Ironleaf) | Conveyor check with diagrams; lockout–tagout; forklift check (asks which forklift). |
+| **Farhan** (Tamarind Bank) | Cash counter, identity check, and the restricted suspicious-deposit guide in Kannada. |
+| **Priya** (Corner Basket) | Spill clean-up in Marathi; switch to Bengali to see the "not approved yet" fallback. |
+| **Asha** (instructional designer) | Sources: upload the sample *pickup SOP revision 2*. Live pickup guidance is suspended until the new version is approved. Translate (codes, units and numbers are protected) and make slides. |
 | **Vikram / Meera** (subject experts) | Review and publish. You cannot approve your own work. |
-| **Kavya** (language reviewer) | Approve translations and translated media from the inbox. |
-| **Ravi** (safety checker) | Confirm safety text independently. |
-| **Nisha** (analyst) | Insights, with "How is this calculated?" on every figure. |
-| **Admin** | Export a package; read the activity log; reset demo data. |
+| **Kavya / Ravi** (language reviewer / safety checker) | Approve translations; independent safety check. |
+| **Nisha** (learning analyst) | Insights per client, with "How is this calculated?" on every figure. |
+| **Admin** (delivery manager) | Clients, then Export package; Acceptance checklist; reset demo data. |
+
+## Acceptance checklist
+
+The checklist page runs the D07 Appendix A items against a copy of the current data. Results:
+
+- **Verified live (12 items):** serving gate, negative tests, withdrawal, general-only packages, protected terms and safety checks, stale media after a source change, practice separation, analytics reconciliation, standalone UI, package fields, and C1–C5 contracts.
+- **Partly in this demo (1 item):** the hand-over records.
+- **Production build (2 items):** benchmark B1 (AI authoring productivity) and benchmarks B1–B4. These need real models and thresholds, so they are never shown as passed.
 
 ## Structure
 

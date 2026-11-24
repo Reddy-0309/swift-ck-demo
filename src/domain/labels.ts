@@ -228,14 +228,14 @@ export const FIELD_LABELS: Record<Language, Record<string, string>> = {
 
 /** Names of tasks, situations and equipment as workers see them. Codes stay unchanged. */
 export const CONTEXT_LABELS: Record<Language, Record<string, string>> = {
-  en: { "T-PICKUP": "Parcel pickup", "T-COD-REVIEW": "Cash-on-delivery review", "T-CONV-INSPECT": "Conveyor daily inspection", "T-RETURNS": "Customer return collection", DAMAGED_PACKAGE: "Damaged packaging", ADDRESS_MISMATCH: "Address mismatch", LEAKING_CONTENTS: "Leaking contents", "EQ-1000-A": "Conveyor line A", "EQ-1000-B": "Conveyor line B", "EQ-2000-X": "Sorter X", "CV-1000": "Conveyor model CV-1000" },
-  kn: { "T-PICKUP": "ಪಾರ್ಸೆಲ್ ಪಿಕಪ್", "T-COD-REVIEW": "ಕ್ಯಾಶ್-ಆನ್-ಡೆಲಿವರಿ ಪರಿಶೀಲನೆ", "T-CONV-INSPECT": "ಕನ್ವೇಯರ್ ದೈನಂದಿನ ತಪಾಸಣೆ", "T-RETURNS": "ಗ್ರಾಹಕ ರಿಟರ್ನ್ ಸಂಗ್ರಹ", DAMAGED_PACKAGE: "ಹಾನಿಗೊಳಗಾದ ಪ್ಯಾಕೇಜಿಂಗ್", ADDRESS_MISMATCH: "ವಿಳಾಸ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ", LEAKING_CONTENTS: "ಸೋರುತ್ತಿರುವ ವಸ್ತುಗಳು", "EQ-1000-A": "ಕನ್ವೇಯರ್ ಲೈನ್ A", "EQ-1000-B": "ಕನ್ವೇಯರ್ ಲೈನ್ B", "EQ-2000-X": "ಸಾರ್ಟರ್ X", "CV-1000": "ಕನ್ವೇಯರ್ ಮಾದರಿ CV-1000" },
-  ta: { "T-PICKUP": "பார்சல் பிக்அப்", "T-COD-REVIEW": "கேஷ்-ஆன்-டெலிவரி சரிபார்ப்பு", "T-CONV-INSPECT": "கன்வேயர் தினசரி ஆய்வு", "T-RETURNS": "வாடிக்கையாளர் ரிட்டர்ன் சேகரிப்பு", DAMAGED_PACKAGE: "சேதமடைந்த பேக்கேஜிங்", ADDRESS_MISMATCH: "முகவரி பொருந்தவில்லை", LEAKING_CONTENTS: "கசியும் பொருட்கள்", "EQ-1000-A": "கன்வேயர் லைன் A", "EQ-1000-B": "கன்வேயர் லைன் B", "EQ-2000-X": "சார்ட்டர் X", "CV-1000": "கன்வேயர் மாடல் CV-1000" },
-  te: { "T-PICKUP": "పార్సెల్ పికప్", "T-COD-REVIEW": "క్యాష్-ఆన్-డెలివరీ సమీక్ష", "T-CONV-INSPECT": "కన్వేయర్ రోజువారీ తనిఖీ", "T-RETURNS": "కస్టమర్ రిటర్న్ సేకరణ", DAMAGED_PACKAGE: "దెబ్బతిన్న ప్యాకేజింగ్", ADDRESS_MISMATCH: "చిరునామా సరిపోలడం లేదు", LEAKING_CONTENTS: "కారుతున్న వస్తువులు", "EQ-1000-A": "కన్వేయర్ లైన్ A", "EQ-1000-B": "కన్వేయర్ లైన్ B", "EQ-2000-X": "సార్టర్ X", "CV-1000": "కన్వేయర్ మోడల్ CV-1000" },
-  hi: { "T-PICKUP": "पार्सल पिकअप", "T-COD-REVIEW": "कैश-ऑन-डिलीवरी समीक्षा", "T-CONV-INSPECT": "कन्वेयर दैनिक निरीक्षण", "T-RETURNS": "ग्राहक रिटर्न संग्रह", DAMAGED_PACKAGE: "क्षतिग्रस्त पैकेजिंग", ADDRESS_MISMATCH: "पता मेल नहीं खाता", LEAKING_CONTENTS: "रिसता हुआ सामान", "EQ-1000-A": "कन्वेयर लाइन A", "EQ-1000-B": "कन्वेयर लाइन B", "EQ-2000-X": "सॉर्टर X", "CV-1000": "कन्वेयर मॉडल CV-1000" },
-  ml: { "T-PICKUP": "പാഴ്സൽ പിക്കപ്പ്", "T-COD-REVIEW": "ക്യാഷ്-ഓൺ-ഡെലിവറി പരിശോധന", "T-CONV-INSPECT": "കൺവെയർ ദൈനംദിന പരിശോധന", "T-RETURNS": "ഉപഭോക്തൃ റിട്ടേൺ ശേഖരണം", DAMAGED_PACKAGE: "കേടായ പാക്കേജിംഗ്", ADDRESS_MISMATCH: "വിലാസം പൊരുത്തപ്പെടുന്നില്ല", LEAKING_CONTENTS: "ചോരുന്ന വസ്തുക്കൾ", "EQ-1000-A": "കൺവെയർ ലൈൻ A", "EQ-1000-B": "കൺവെയർ ലൈൻ B", "EQ-2000-X": "സോർട്ടർ X", "CV-1000": "കൺവെയർ മോഡൽ CV-1000" },
-  mr: { "T-PICKUP": "पार्सल पिकअप", "T-COD-REVIEW": "कॅश-ऑन-डिलिव्हरी पुनरावलोकन", "T-CONV-INSPECT": "कन्व्हेयर दैनंदिन तपासणी", "T-RETURNS": "ग्राहक रिटर्न संकलन", DAMAGED_PACKAGE: "खराब झालेले पॅकेजिंग", ADDRESS_MISMATCH: "पत्ता जुळत नाही", LEAKING_CONTENTS: "गळणाऱ्या वस्तू", "EQ-1000-A": "कन्व्हेयर लाइन A", "EQ-1000-B": "कन्व्हेयर लाइन B", "EQ-2000-X": "सॉर्टर X", "CV-1000": "कन्व्हेयर मॉडेल CV-1000" },
-  bn: { "T-PICKUP": "পার্সেল পিকআপ", "T-COD-REVIEW": "ক্যাশ-অন-ডেলিভারি পর্যালোচনা", "T-CONV-INSPECT": "কনভেয়ার দৈনিক পরিদর্শন", "T-RETURNS": "গ্রাহক রিটার্ন সংগ্রহ", DAMAGED_PACKAGE: "ক্ষতিগ্রস্ত প্যাকেজিং", ADDRESS_MISMATCH: "ঠিকানা মিলছে না", LEAKING_CONTENTS: "চুইয়ে পড়া জিনিস", "EQ-1000-A": "কনভেয়ার লাইন A", "EQ-1000-B": "কনভেয়ার লাইন B", "EQ-2000-X": "সর্টার X", "CV-1000": "কনভেয়ার মডেল CV-1000" },
+  en: { "T-PICKUP": "Parcel pickup", "T-COD-REVIEW": "Cash-on-delivery review", "T-CONV-INSPECT": "Conveyor daily inspection", "T-RETURNS": "Customer return collection", DAMAGED_PACKAGE: "Damaged packaging", ADDRESS_MISMATCH: "Address mismatch", LEAKING_CONTENTS: "Leaking contents", "EQ-1000-A": "Conveyor line A", "EQ-1000-B": "Conveyor line B", "EQ-2000-X": "Sorter X", "CV-1000": "Conveyor model CV-1000" , "T-LOTO": "Lockout and tagout", "T-FORKLIFT-CHECK": "Forklift pre-use check", "T-CASH-OPEN": "Opening the cash counter", "T-KYC-CHECK": "Customer identity check", "T-SUSPICIOUS-TXN": "Suspicious transaction", "T-SPILL": "Spill on the shop floor", "T-FIRE-CHECK": "Fire exit and extinguisher check", "T-CUSTOMER-INJURY": "Customer injury", "FL-25-01": "Forklift FL-25-01", "FL-25-02": "Forklift FL-25-02", "FL-25": "Forklift model FL-25"},
+  kn: { "T-PICKUP": "ಪಾರ್ಸೆಲ್ ಪಿಕಪ್", "T-COD-REVIEW": "ಕ್ಯಾಶ್-ಆನ್-ಡೆಲಿವರಿ ಪರಿಶೀಲನೆ", "T-CONV-INSPECT": "ಕನ್ವೇಯರ್ ದೈನಂದಿನ ತಪಾಸಣೆ", "T-RETURNS": "ಗ್ರಾಹಕ ರಿಟರ್ನ್ ಸಂಗ್ರಹ", DAMAGED_PACKAGE: "ಹಾನಿಗೊಳಗಾದ ಪ್ಯಾಕೇಜಿಂಗ್", ADDRESS_MISMATCH: "ವಿಳಾಸ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ", LEAKING_CONTENTS: "ಸೋರುತ್ತಿರುವ ವಸ್ತುಗಳು", "EQ-1000-A": "ಕನ್ವೇಯರ್ ಲೈನ್ A", "EQ-1000-B": "ಕನ್ವೇಯರ್ ಲೈನ್ B", "EQ-2000-X": "ಸಾರ್ಟರ್ X", "CV-1000": "ಕನ್ವೇಯರ್ ಮಾದರಿ CV-1000" , "T-LOTO": "ಲಾಕ್‌ಔಟ್ ಮತ್ತು ಟ್ಯಾಗ್‌ಔಟ್", "T-FORKLIFT-CHECK": "ಫೋರ್ಕ್‌ಲಿಫ್ಟ್ ಬಳಕೆಗೆ ಮುನ್ನ ತಪಾಸಣೆ", "T-CASH-OPEN": "ನಗದು ಕೌಂಟರ್ ತೆರೆಯುವುದು", "T-KYC-CHECK": "ಗ್ರಾಹಕರ ಗುರುತಿನ ಪರಿಶೀಲನೆ", "T-SUSPICIOUS-TXN": "ಅನುಮಾನಾಸ್ಪದ ವಹಿವಾಟು", "T-SPILL": "ಅಂಗಡಿ ನೆಲದ ಮೇಲೆ ಚೆಲ್ಲಿದ್ದು", "T-FIRE-CHECK": "ಅಗ್ನಿ ನಿರ್ಗಮನ ಮತ್ತು ಅಗ್ನಿಶಾಮಕ ತಪಾಸಣೆ", "T-CUSTOMER-INJURY": "ಗ್ರಾಹಕರಿಗೆ ಗಾಯ", "FL-25-01": "ಫೋರ್ಕ್‌ಲಿಫ್ಟ್ FL-25-01", "FL-25-02": "ಫೋರ್ಕ್‌ಲಿಫ್ಟ್ FL-25-02", "FL-25": "ಫೋರ್ಕ್‌ಲಿಫ್ಟ್ ಮಾದರಿ FL-25"},
+  ta: { "T-PICKUP": "பார்சல் பிக்அப்", "T-COD-REVIEW": "கேஷ்-ஆன்-டெலிவரி சரிபார்ப்பு", "T-CONV-INSPECT": "கன்வேயர் தினசரி ஆய்வு", "T-RETURNS": "வாடிக்கையாளர் ரிட்டர்ன் சேகரிப்பு", DAMAGED_PACKAGE: "சேதமடைந்த பேக்கேஜிங்", ADDRESS_MISMATCH: "முகவரி பொருந்தவில்லை", LEAKING_CONTENTS: "கசியும் பொருட்கள்", "EQ-1000-A": "கன்வேயர் லைன் A", "EQ-1000-B": "கன்வேயர் லைன் B", "EQ-2000-X": "சார்ட்டர் X", "CV-1000": "கன்வேயர் மாடல் CV-1000" , "T-LOTO": "லாக்அவுட் மற்றும் டேக்அவுட்", "T-FORKLIFT-CHECK": "ஃபோர்க்லிஃப்ட் பயன்பாட்டுக்கு முன் சோதனை", "T-CASH-OPEN": "பணக் கவுண்டரைத் திறத்தல்", "T-KYC-CHECK": "வாடிக்கையாளர் அடையாளச் சரிபார்ப்பு", "T-SUSPICIOUS-TXN": "சந்தேகத்திற்குரிய பரிவர்த்தனை", "T-SPILL": "கடைத் தரையில் சிந்தியது", "T-FIRE-CHECK": "தீ வெளியேற்றம் மற்றும் தீயணைப்பான் சோதனை", "T-CUSTOMER-INJURY": "வாடிக்கையாளர் காயம்", "FL-25-01": "ஃபோர்க்லிஃப்ட் FL-25-01", "FL-25-02": "ஃபோர்க்லிஃப்ட் FL-25-02", "FL-25": "ஃபோர்க்லிஃப்ட் மாடல் FL-25"},
+  te: { "T-PICKUP": "పార్సెల్ పికప్", "T-COD-REVIEW": "క్యాష్-ఆన్-డెలివరీ సమీక్ష", "T-CONV-INSPECT": "కన్వేయర్ రోజువారీ తనిఖీ", "T-RETURNS": "కస్టమర్ రిటర్న్ సేకరణ", DAMAGED_PACKAGE: "దెబ్బతిన్న ప్యాకేజింగ్", ADDRESS_MISMATCH: "చిరునామా సరిపోలడం లేదు", LEAKING_CONTENTS: "కారుతున్న వస్తువులు", "EQ-1000-A": "కన్వేయర్ లైన్ A", "EQ-1000-B": "కన్వేయర్ లైన్ B", "EQ-2000-X": "సార్టర్ X", "CV-1000": "కన్వేయర్ మోడల్ CV-1000" , "T-LOTO": "లాకౌట్ మరియు ట్యాగౌట్", "T-FORKLIFT-CHECK": "ఫోర్క్‌లిఫ్ట్ వినియోగానికి ముందు తనిఖీ", "T-CASH-OPEN": "నగదు కౌంటర్ తెరవడం", "T-KYC-CHECK": "కస్టమర్ గుర్తింపు తనిఖీ", "T-SUSPICIOUS-TXN": "అనుమానాస్పద లావాదేవీ", "T-SPILL": "దుకాణం నేలపై ఒలికినది", "T-FIRE-CHECK": "ఫైర్ ఎగ్జిట్ మరియు అగ్నిమాపక తనిఖీ", "T-CUSTOMER-INJURY": "కస్టమర్ గాయం", "FL-25-01": "ఫోర్క్‌లిఫ్ట్ FL-25-01", "FL-25-02": "ఫోర్క్‌లిఫ్ట్ FL-25-02", "FL-25": "ఫోర్క్‌లిఫ్ట్ మోడల్ FL-25"},
+  hi: { "T-PICKUP": "पार्सल पिकअप", "T-COD-REVIEW": "कैश-ऑन-डिलीवरी समीक्षा", "T-CONV-INSPECT": "कन्वेयर दैनिक निरीक्षण", "T-RETURNS": "ग्राहक रिटर्न संग्रह", DAMAGED_PACKAGE: "क्षतिग्रस्त पैकेजिंग", ADDRESS_MISMATCH: "पता मेल नहीं खाता", LEAKING_CONTENTS: "रिसता हुआ सामान", "EQ-1000-A": "कन्वेयर लाइन A", "EQ-1000-B": "कन्वेयर लाइन B", "EQ-2000-X": "सॉर्टर X", "CV-1000": "कन्वेयर मॉडल CV-1000" , "T-LOTO": "लॉकआउट और टैगआउट", "T-FORKLIFT-CHECK": "फोर्कलिफ्ट उपयोग से पहले जाँच", "T-CASH-OPEN": "नकद काउंटर खोलना", "T-KYC-CHECK": "ग्राहक पहचान जाँच", "T-SUSPICIOUS-TXN": "संदिग्ध लेनदेन", "T-SPILL": "फ़र्श पर गिरी चीज़", "T-FIRE-CHECK": "फ़ायर एग्ज़िट और अग्निशामक जाँच", "T-CUSTOMER-INJURY": "ग्राहक को चोट", "FL-25-01": "फोर्कलिफ्ट FL-25-01", "FL-25-02": "फोर्कलिफ्ट FL-25-02", "FL-25": "फोर्कलिफ्ट मॉडल FL-25"},
+  ml: { "T-PICKUP": "പാഴ്സൽ പിക്കപ്പ്", "T-COD-REVIEW": "ക്യാഷ്-ഓൺ-ഡെലിവറി പരിശോധന", "T-CONV-INSPECT": "കൺവെയർ ദൈനംദിന പരിശോധന", "T-RETURNS": "ഉപഭോക്തൃ റിട്ടേൺ ശേഖരണം", DAMAGED_PACKAGE: "കേടായ പാക്കേജിംഗ്", ADDRESS_MISMATCH: "വിലാസം പൊരുത്തപ്പെടുന്നില്ല", LEAKING_CONTENTS: "ചോരുന്ന വസ്തുക്കൾ", "EQ-1000-A": "കൺവെയർ ലൈൻ A", "EQ-1000-B": "കൺവെയർ ലൈൻ B", "EQ-2000-X": "സോർട്ടർ X", "CV-1000": "കൺവെയർ മോഡൽ CV-1000" , "T-LOTO": "ലോക്കൗട്ടും ടാഗൗട്ടും", "T-FORKLIFT-CHECK": "ഫോർക്ക്‌ലിഫ്റ്റ് ഉപയോഗത്തിന് മുമ്പുള്ള പരിശോധന", "T-CASH-OPEN": "ക്യാഷ് കൗണ്ടർ തുറക്കൽ", "T-KYC-CHECK": "ഉപഭോക്തൃ തിരിച്ചറിയൽ പരിശോധന", "T-SUSPICIOUS-TXN": "സംശയാസ്പദമായ ഇടപാട്", "T-SPILL": "കടയുടെ തറയിൽ തൂവിയത്", "T-FIRE-CHECK": "ഫയർ എക്സിറ്റും അഗ്നിശമന ഉപകരണ പരിശോധനയും", "T-CUSTOMER-INJURY": "ഉപഭോക്താവിന് പരിക്ക്", "FL-25-01": "ഫോർക്ക്‌ലിഫ്റ്റ് FL-25-01", "FL-25-02": "ഫോർക്ക്‌ലിഫ്റ്റ് FL-25-02", "FL-25": "ഫോർക്ക്‌ലിഫ്റ്റ് മോഡൽ FL-25"},
+  mr: { "T-PICKUP": "पार्सल पिकअप", "T-COD-REVIEW": "कॅश-ऑन-डिलिव्हरी पुनरावलोकन", "T-CONV-INSPECT": "कन्व्हेयर दैनंदिन तपासणी", "T-RETURNS": "ग्राहक रिटर्न संकलन", DAMAGED_PACKAGE: "खराब झालेले पॅकेजिंग", ADDRESS_MISMATCH: "पत्ता जुळत नाही", LEAKING_CONTENTS: "गळणाऱ्या वस्तू", "EQ-1000-A": "कन्व्हेयर लाइन A", "EQ-1000-B": "कन्व्हेयर लाइन B", "EQ-2000-X": "सॉर्टर X", "CV-1000": "कन्व्हेयर मॉडेल CV-1000" , "T-LOTO": "लॉकआउट आणि टॅगआउट", "T-FORKLIFT-CHECK": "फोर्कलिफ्ट वापरापूर्वी तपासणी", "T-CASH-OPEN": "रोख काउंटर उघडणे", "T-KYC-CHECK": "ग्राहक ओळख तपासणी", "T-SUSPICIOUS-TXN": "संशयास्पद व्यवहार", "T-SPILL": "जमिनीवर सांडलेले", "T-FIRE-CHECK": "फायर एक्झिट आणि अग्निशामक तपासणी", "T-CUSTOMER-INJURY": "ग्राहकाला दुखापत", "FL-25-01": "फोर्कलिफ्ट FL-25-01", "FL-25-02": "फोर्कलिफ्ट FL-25-02", "FL-25": "फोर्कलिफ्ट मॉडेल FL-25"},
+  bn: { "T-PICKUP": "পার্সেল পিকআপ", "T-COD-REVIEW": "ক্যাশ-অন-ডেলিভারি পর্যালোচনা", "T-CONV-INSPECT": "কনভেয়ার দৈনিক পরিদর্শন", "T-RETURNS": "গ্রাহক রিটার্ন সংগ্রহ", DAMAGED_PACKAGE: "ক্ষতিগ্রস্ত প্যাকেজিং", ADDRESS_MISMATCH: "ঠিকানা মিলছে না", LEAKING_CONTENTS: "চুইয়ে পড়া জিনিস", "EQ-1000-A": "কনভেয়ার লাইন A", "EQ-1000-B": "কনভেয়ার লাইন B", "EQ-2000-X": "সর্টার X", "CV-1000": "কনভেয়ার মডেল CV-1000" , "T-LOTO": "লকআউট ও ট্যাগআউট", "T-FORKLIFT-CHECK": "ফর্কলিফট ব্যবহারের আগে পরীক্ষা", "T-CASH-OPEN": "নগদ কাউন্টার খোলা", "T-KYC-CHECK": "গ্রাহকের পরিচয় যাচাই", "T-SUSPICIOUS-TXN": "সন্দেহজনক লেনদেন", "T-SPILL": "মেঝেতে পড়ে যাওয়া জিনিস", "T-FIRE-CHECK": "ফায়ার এক্সিট ও অগ্নিনির্বাপক পরীক্ষা", "T-CUSTOMER-INJURY": "গ্রাহকের আঘাত", "FL-25-01": "ফর্কলিফট FL-25-01", "FL-25-02": "ফর্কলিফট FL-25-02", "FL-25": "ফর্কলিফট মডেল FL-25"},
 };
 
 /** Field-app screen text. */
@@ -268,11 +268,20 @@ export interface WorkerText {
   tryAgain: string;
   media: Record<"slide" | "narration" | "source_figure" | "annotated_diagram", string>;
   downloadSlide: string;
+  myCourse: string;
+  courseIntro: string;
+  module: string;
+  min: string;
+  openGuide: string;
+  guideComing: string;
+  inLms: string;
+  notInLanguage: string;
+  showIn: string;
 }
 
 export const WORKER_TEXT: Record<Language, WorkerText> = {
   en: {
-    hello: "Hello", chooseTask: "What are you working on?", searchPlaceholder: "Describe the problem, for example: torn packaging", search: "Search",
+    hello: "Hello", chooseTask: "What are you working on?", searchPlaceholder: "Describe the problem in your own words", search: "Search",
     guidance: "Guidance", practice: "Practice", situationQuestion: "Is anything unusual?", normal: "No, normal job", whichEquipment: "Which equipment?",
     back: "Back", language: "Language", noTasks: "No tasks are set up for your role yet.", switchUser: "Switch user",
     practiceIntro: "Practise real decisions before they happen on the job.", guided: "Guided practice", guidedHint: "With hints and feedback",
@@ -281,9 +290,10 @@ export const WORKER_TEXT: Record<Language, WorkerText> = {
     approvedGuidance: "The approved procedure", tryAgain: "Try again",
     media: { slide: "Slide", narration: "Audio", source_figure: "Diagram", annotated_diagram: "Labelled diagram" },
     downloadSlide: "Download slide",
+    myCourse: "My course", courseIntro: "Your company's e-learning modules, with the approved guides to use on the job.", module: "Module", min: "min", openGuide: "Open guide", guideComing: "Guide being prepared", inLms: "Lesson in your learning platform", notInLanguage: "Not yet approved in your language.", showIn: "Show in",
   },
   kn: {
-    hello: "ನಮಸ್ಕಾರ", chooseTask: "ನೀವು ಯಾವ ಕೆಲಸ ಮಾಡುತ್ತಿದ್ದೀರಿ?", searchPlaceholder: "ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ, ಉದಾ: ಹರಿದ ಪ್ಯಾಕೇಜಿಂಗ್", search: "ಹುಡುಕಿ",
+    hello: "ನಮಸ್ಕಾರ", chooseTask: "ನೀವು ಯಾವ ಕೆಲಸ ಮಾಡುತ್ತಿದ್ದೀರಿ?", searchPlaceholder: "ಸಮಸ್ಯೆಯನ್ನು ನಿಮ್ಮ ಮಾತುಗಳಲ್ಲಿ ವಿವರಿಸಿ", search: "ಹುಡುಕಿ",
     guidance: "ಮಾರ್ಗದರ್ಶನ", practice: "ಅಭ್ಯಾಸ", situationQuestion: "ಏನಾದರೂ ಅಸಾಮಾನ್ಯವಿದೆಯೇ?", normal: "ಇಲ್ಲ, ಸಾಮಾನ್ಯ ಕೆಲಸ", whichEquipment: "ಯಾವ ಉಪಕರಣ?",
     back: "ಹಿಂದೆ", language: "ಭಾಷೆ", noTasks: "ನಿಮ್ಮ ಪಾತ್ರಕ್ಕೆ ಇನ್ನೂ ಯಾವುದೇ ಕೆಲಸಗಳನ್ನು ಹೊಂದಿಸಲಾಗಿಲ್ಲ.", switchUser: "ಬಳಕೆದಾರ ಬದಲಿಸಿ",
     practiceIntro: "ಕೆಲಸದಲ್ಲಿ ಎದುರಾಗುವ ಮೊದಲೇ ನಿಜವಾದ ನಿರ್ಧಾರಗಳನ್ನು ಅಭ್ಯಾಸ ಮಾಡಿ.", guided: "ಮಾರ್ಗದರ್ಶಿತ ಅಭ್ಯಾಸ", guidedHint: "ಸುಳಿವು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆಯೊಂದಿಗೆ",
@@ -292,9 +302,10 @@ export const WORKER_TEXT: Record<Language, WorkerText> = {
     approvedGuidance: "ಅನುಮೋದಿತ ಕಾರ್ಯವಿಧಾನ", tryAgain: "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
     media: { slide: "ಸ್ಲೈಡ್", narration: "ಆಡಿಯೋ", source_figure: "ರೇಖಾಚಿತ್ರ", annotated_diagram: "ಲೇಬಲ್ ಸಹಿತ ರೇಖಾಚಿತ್ರ" },
     downloadSlide: "ಸ್ಲೈಡ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
+    myCourse: "ನನ್ನ ಕೋರ್ಸ್", courseIntro: "ನಿಮ್ಮ ಕಂಪನಿಯ ಇ-ಲರ್ನಿಂಗ್ ಮಾಡ್ಯೂಲ್‌ಗಳು ಮತ್ತು ಕೆಲಸದಲ್ಲಿ ಬಳಸಲು ಅನುಮೋದಿತ ಮಾರ್ಗದರ್ಶಿಗಳು.", module: "ಮಾಡ್ಯೂಲ್", min: "ನಿಮಿಷ", openGuide: "ಮಾರ್ಗದರ್ಶಿ ತೆರೆಯಿರಿ", guideComing: "ಮಾರ್ಗದರ್ಶಿ ಸಿದ್ಧವಾಗುತ್ತಿದೆ", inLms: "ಪಾಠ ನಿಮ್ಮ ಕಲಿಕಾ ವೇದಿಕೆಯಲ್ಲಿ", notInLanguage: "ಇದು ಇನ್ನೂ ನಿಮ್ಮ ಭಾಷೆಯಲ್ಲಿ ಅನುಮೋದನೆಯಾಗಿಲ್ಲ.", showIn: "ಇದರಲ್ಲಿ ನೋಡಿ",
   },
   ta: {
-    hello: "வணக்கம்", chooseTask: "நீங்கள் எந்த வேலையில் இருக்கிறீர்கள்?", searchPlaceholder: "பிரச்சினையை விவரிக்கவும், எ.கா: கிழிந்த பேக்கேஜிங்", search: "தேடு",
+    hello: "வணக்கம்", chooseTask: "நீங்கள் எந்த வேலையில் இருக்கிறீர்கள்?", searchPlaceholder: "பிரச்சினையை உங்கள் சொந்த வார்த்தைகளில் விவரிக்கவும்", search: "தேடு",
     guidance: "வழிகாட்டல்", practice: "பயிற்சி", situationQuestion: "ஏதாவது வழக்கத்திற்கு மாறாக உள்ளதா?", normal: "இல்லை, வழக்கமான வேலை", whichEquipment: "எந்த இயந்திரம்?",
     back: "பின்செல்", language: "மொழி", noTasks: "உங்கள் பணிக்கு இன்னும் எந்தப் பணிகளும் அமைக்கப்படவில்லை.", switchUser: "பயனரை மாற்று",
     practiceIntro: "வேலையில் நிகழும் முன்பே உண்மையான முடிவுகளைப் பயிற்சி செய்யுங்கள்.", guided: "வழிகாட்டப்பட்ட பயிற்சி", guidedHint: "குறிப்புகள் மற்றும் கருத்துகளுடன்",
@@ -303,9 +314,10 @@ export const WORKER_TEXT: Record<Language, WorkerText> = {
     approvedGuidance: "அங்கீகரிக்கப்பட்ட நடைமுறை", tryAgain: "மீண்டும் முயற்சிக்கவும்",
     media: { slide: "ஸ்லைடு", narration: "ஒலி", source_figure: "வரைபடம்", annotated_diagram: "குறிப்புகளுடன் வரைபடம்" },
     downloadSlide: "ஸ்லைடைப் பதிவிறக்கு",
+    myCourse: "என் பாடநெறி", courseIntro: "உங்கள் நிறுவனத்தின் இ-லேர்னிங் தொகுதிகள், வேலையில் பயன்படுத்த அங்கீகரிக்கப்பட்ட வழிகாட்டிகளுடன்.", module: "தொகுதி", min: "நிமி", openGuide: "வழிகாட்டியைத் திற", guideComing: "வழிகாட்டி தயாராகிறது", inLms: "பாடம் உங்கள் கற்றல் தளத்தில்", notInLanguage: "இது இன்னும் உங்கள் மொழியில் அங்கீகரிக்கப்படவில்லை.", showIn: "இதில் காண்க",
   },
   te: {
-    hello: "నమస్కారం", chooseTask: "మీరు ఏ పని చేస్తున్నారు?", searchPlaceholder: "సమస్యను వివరించండి, ఉదా: చిరిగిన ప్యాకేజింగ్", search: "వెతకండి",
+    hello: "నమస్కారం", chooseTask: "మీరు ఏ పని చేస్తున్నారు?", searchPlaceholder: "సమస్యను మీ మాటల్లో వివరించండి", search: "వెతకండి",
     guidance: "మార్గదర్శనం", practice: "అభ్యాసం", situationQuestion: "ఏదైనా అసాధారణంగా ఉందా?", normal: "లేదు, సాధారణ పని", whichEquipment: "ఏ యంత్రం?",
     back: "వెనుకకు", language: "భాష", noTasks: "మీ పాత్రకు ఇంకా ఏ పనులూ సెట్ చేయలేదు.", switchUser: "వినియోగదారుని మార్చండి",
     practiceIntro: "పనిలో ఎదురయ్యే ముందే నిజమైన నిర్ణయాలను అభ్యాసం చేయండి.", guided: "మార్గదర్శక అభ్యాసం", guidedHint: "సూచనలు మరియు అభిప్రాయంతో",
@@ -314,9 +326,10 @@ export const WORKER_TEXT: Record<Language, WorkerText> = {
     approvedGuidance: "ఆమోదించిన విధానం", tryAgain: "మళ్లీ ప్రయత్నించండి",
     media: { slide: "స్లైడ్", narration: "ఆడియో", source_figure: "చిత్రం", annotated_diagram: "లేబుల్‌లతో చిత్రం" },
     downloadSlide: "స్లైడ్ డౌన్‌లోడ్ చేయండి",
+    myCourse: "నా కోర్సు", courseIntro: "మీ కంపెనీ ఇ-లెర్నింగ్ మాడ్యూళ్లు, పనిలో ఉపయోగించడానికి ఆమోదించిన గైడ్‌లతో.", module: "మాడ్యూల్", min: "నిమి", openGuide: "గైడ్ తెరవండి", guideComing: "గైడ్ సిద్ధమవుతోంది", inLms: "పాఠం మీ లెర్నింగ్ ప్లాట్‌ఫామ్‌లో", notInLanguage: "ఇది ఇంకా మీ భాషలో ఆమోదించబడలేదు.", showIn: "ఇందులో చూడండి",
   },
   hi: {
-    hello: "नमस्ते", chooseTask: "आप कौन-सा काम कर रहे हैं?", searchPlaceholder: "समस्या बताइए, जैसे: फटी पैकेजिंग", search: "खोजें",
+    hello: "नमस्ते", chooseTask: "आप कौन-सा काम कर रहे हैं?", searchPlaceholder: "समस्या अपने शब्दों में बताएँ", search: "खोजें",
     guidance: "मार्गदर्शन", practice: "अभ्यास", situationQuestion: "क्या कुछ असामान्य है?", normal: "नहीं, सामान्य काम", whichEquipment: "कौन-सा उपकरण?",
     back: "वापस", language: "भाषा", noTasks: "आपकी भूमिका के लिए अभी कोई काम तय नहीं है।", switchUser: "उपयोगकर्ता बदलें",
     practiceIntro: "काम पर आने से पहले असली निर्णयों का अभ्यास करें।", guided: "मार्गदर्शित अभ्यास", guidedHint: "संकेत और प्रतिक्रिया के साथ",
@@ -325,9 +338,10 @@ export const WORKER_TEXT: Record<Language, WorkerText> = {
     approvedGuidance: "स्वीकृत प्रक्रिया", tryAgain: "फिर से प्रयास करें",
     media: { slide: "स्लाइड", narration: "ऑडियो", source_figure: "चित्र", annotated_diagram: "लेबल वाला चित्र" },
     downloadSlide: "स्लाइड डाउनलोड करें",
+    myCourse: "मेरा कोर्स", courseIntro: "आपकी कंपनी के ई-लर्निंग मॉड्यूल, और काम के समय इस्तेमाल के लिए स्वीकृत गाइड।", module: "मॉड्यूल", min: "मिनट", openGuide: "गाइड खोलें", guideComing: "गाइड तैयार की जा रही है", inLms: "पाठ आपके लर्निंग प्लेटफ़ॉर्म में", notInLanguage: "यह अभी आपकी भाषा में स्वीकृत नहीं है।", showIn: "इसमें देखें",
   },
   ml: {
-    hello: "നമസ്കാരം", chooseTask: "നിങ്ങൾ ഏത് ജോലിയാണ് ചെയ്യുന്നത്?", searchPlaceholder: "പ്രശ്നം വിവരിക്കുക, ഉദാ: കീറിയ പാക്കേജിംഗ്", search: "തിരയുക",
+    hello: "നമസ്കാരം", chooseTask: "നിങ്ങൾ ഏത് ജോലിയാണ് ചെയ്യുന്നത്?", searchPlaceholder: "പ്രശ്നം നിങ്ങളുടെ വാക്കുകളിൽ വിവരിക്കുക", search: "തിരയുക",
     guidance: "മാർഗ്ഗനിർദ്ദേശം", practice: "പരിശീലനം", situationQuestion: "എന്തെങ്കിലും അസാധാരണമായി ഉണ്ടോ?", normal: "ഇല്ല, സാധാരണ ജോലി", whichEquipment: "ഏത് ഉപകരണം?",
     back: "തിരികെ", language: "ഭാഷ", noTasks: "നിങ്ങളുടെ റോളിന് ഇതുവരെ ജോലികൾ സജ്ജീകരിച്ചിട്ടില്ല.", switchUser: "ഉപയോക്താവിനെ മാറ്റുക",
     practiceIntro: "ജോലിയിൽ സംഭവിക്കുന്നതിന് മുമ്പ് യഥാർത്ഥ തീരുമാനങ്ങൾ പരിശീലിക്കുക.", guided: "മാർഗ്ഗനിർദ്ദേശിത പരിശീലനം", guidedHint: "സൂചനകളും പ്രതികരണവും സഹിതം",
@@ -336,9 +350,10 @@ export const WORKER_TEXT: Record<Language, WorkerText> = {
     approvedGuidance: "അംഗീകൃത നടപടിക്രമം", tryAgain: "വീണ്ടും ശ്രമിക്കുക",
     media: { slide: "സ്ലൈഡ്", narration: "ഓഡിയോ", source_figure: "ചിത്രം", annotated_diagram: "ലേബലുള്ള ചിത്രം" },
     downloadSlide: "സ്ലൈഡ് ഡൗൺലോഡ് ചെയ്യുക",
+    myCourse: "എന്റെ കോഴ്സ്", courseIntro: "നിങ്ങളുടെ കമ്പനിയുടെ ഇ-ലേണിംഗ് മൊഡ്യൂളുകളും ജോലിയിൽ ഉപയോഗിക്കാനുള്ള അംഗീകൃത ഗൈഡുകളും.", module: "മൊഡ്യൂൾ", min: "മിനിറ്റ്", openGuide: "ഗൈഡ് തുറക്കുക", guideComing: "ഗൈഡ് തയ്യാറാകുന്നു", inLms: "പാഠം നിങ്ങളുടെ ലേണിംഗ് പ്ലാറ്റ്ഫോമിൽ", notInLanguage: "ഇത് ഇതുവരെ നിങ്ങളുടെ ഭാഷയിൽ അംഗീകരിച്ചിട്ടില്ല.", showIn: "ഇതിൽ കാണുക",
   },
   mr: {
-    hello: "नमस्कार", chooseTask: "तुम्ही कोणते काम करत आहात?", searchPlaceholder: "समस्या सांगा, उदा: फाटलेले पॅकेजिंग", search: "शोधा",
+    hello: "नमस्कार", chooseTask: "तुम्ही कोणते काम करत आहात?", searchPlaceholder: "समस्या तुमच्या शब्दांत सांगा", search: "शोधा",
     guidance: "मार्गदर्शन", practice: "सराव", situationQuestion: "काही असामान्य आहे का?", normal: "नाही, नेहमीचे काम", whichEquipment: "कोणते उपकरण?",
     back: "मागे", language: "भाषा", noTasks: "तुमच्या भूमिकेसाठी अजून कोणतीही कामे ठरवलेली नाहीत.", switchUser: "वापरकर्ता बदला",
     practiceIntro: "कामावर प्रसंग येण्यापूर्वी खऱ्या निर्णयांचा सराव करा.", guided: "मार्गदर्शित सराव", guidedHint: "संकेत आणि अभिप्रायासह",
@@ -347,9 +362,10 @@ export const WORKER_TEXT: Record<Language, WorkerText> = {
     approvedGuidance: "मंजूर प्रक्रिया", tryAgain: "पुन्हा प्रयत्न करा",
     media: { slide: "स्लाइड", narration: "ऑडिओ", source_figure: "आकृती", annotated_diagram: "लेबल असलेली आकृती" },
     downloadSlide: "स्लाइड डाउनलोड करा",
+    myCourse: "माझा कोर्स", courseIntro: "तुमच्या कंपनीचे ई-लर्निंग मॉड्यूल, आणि कामावर वापरण्यासाठी मंजूर मार्गदर्शक.", module: "मॉड्यूल", min: "मिनिटे", openGuide: "मार्गदर्शक उघडा", guideComing: "मार्गदर्शक तयार होत आहे", inLms: "धडा तुमच्या लर्निंग प्लॅटफॉर्मवर", notInLanguage: "हे अद्याप तुमच्या भाषेत मंजूर नाही.", showIn: "यात पाहा",
   },
   bn: {
-    hello: "নমস্কার", chooseTask: "আপনি কোন কাজ করছেন?", searchPlaceholder: "সমস্যাটি লিখুন, যেমন: ছেঁড়া প্যাকেজিং", search: "খুঁজুন",
+    hello: "নমস্কার", chooseTask: "আপনি কোন কাজ করছেন?", searchPlaceholder: "সমস্যাটি নিজের ভাষায় বলুন", search: "খুঁজুন",
     guidance: "নির্দেশনা", practice: "অনুশীলন", situationQuestion: "অস্বাভাবিক কিছু আছে কি?", normal: "না, স্বাভাবিক কাজ", whichEquipment: "কোন যন্ত্র?",
     back: "ফিরে যান", language: "ভাষা", noTasks: "আপনার ভূমিকার জন্য এখনও কোনো কাজ ঠিক করা হয়নি।", switchUser: "ব্যবহারকারী বদলান",
     practiceIntro: "কাজে ঘটার আগেই আসল সিদ্ধান্তগুলি অনুশীলন করুন।", guided: "নির্দেশিত অনুশীলন", guidedHint: "ইঙ্গিত ও মতামতসহ",
@@ -358,6 +374,7 @@ export const WORKER_TEXT: Record<Language, WorkerText> = {
     approvedGuidance: "অনুমোদিত পদ্ধতি", tryAgain: "আবার চেষ্টা করুন",
     media: { slide: "স্লাইড", narration: "অডিও", source_figure: "চিত্র", annotated_diagram: "লেবেলযুক্ত চিত্র" },
     downloadSlide: "স্লাইড ডাউনলোড করুন",
+    myCourse: "আমার কোর্স", courseIntro: "আপনার কোম্পানির ই-লার্নিং মডিউল, কাজের সময় ব্যবহারের জন্য অনুমোদিত গাইড সহ।", module: "মডিউল", min: "মিনিট", openGuide: "গাইড খুলুন", guideComing: "গাইড তৈরি হচ্ছে", inLms: "পাঠ আপনার লার্নিং প্ল্যাটফর্মে", notInLanguage: "এটি এখনও আপনার ভাষায় অনুমোদিত নয়।", showIn: "এতে দেখুন",
   },
 };
 

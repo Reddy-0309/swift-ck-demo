@@ -67,7 +67,9 @@ function decide(s: DemoState, req: C1ContextRequest, p: Principal): Decision {
   let restrictedRefused = false;
   for (const v of byTask) {
     if (role && v.applicability.roles.includes(role)) roleOk.push(v);
-    else if (v.distributionClass !== "general") restrictedRefused = true;
+    // Only a task-scoped request is told "not permitted"; a free-text search never reveals
+    // that restricted guidance exists for other roles.
+    else if (v.distributionClass !== "general" && req.task_id) restrictedRefused = true;
   }
 
   const applicable: ObjectVersion[] = [];

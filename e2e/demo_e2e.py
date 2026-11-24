@@ -97,6 +97,38 @@ def main() -> None:
         expect(page.locator(".field-media img")).to_have_count(2)
         print("field: safety-critical conveyor check in Malayalam with diagrams ok")
 
+        # Swift's other clients: each worker sees only their own organisation's guides and course.
+        sign_in("Karthik")
+        expect(page.locator(".field-top .title strong")).to_have_text("Ironleaf Components")
+        field_language("ta")
+        page.locator(".tile", has_text="ஃபோர்க்லிஃப்ட்").click()
+        expect(page.locator(".answer-card")).to_have_count(0)
+        page.get_by_role("button", name="ஃபோர்க்லிஃப்ட் FL-25-02").click()
+        expect(page.locator(".answer-card h2")).to_have_text("ஃபோர்க்லிஃப்ட் பயன்பாட்டுக்கு முன் சோதனை")
+        expect(page.locator(".answer-card .procedure")).to_contain_text("FL-CHK")
+
+        sign_in("Farhan")
+        field_language("kn")
+        page.locator(".tile").nth(2).click()
+        expect(page.locator(".answer-card h2")).to_have_text("ಅನುಮಾನಾಸ್ಪದ ನಗದು ಠೇವಣಿ")
+        expect(page.locator(".answer-card .procedure")).to_contain_text("STR-INT")
+
+        sign_in("Priya")
+        field_language("mr")
+        expect(page.locator(".tile")).to_have_count(2)
+        page.locator(".tile").first.click()
+        expect(page.locator(".answer-card h2")).to_have_text("दुकानाच्या जमिनीवर सांडलेले साफ करणे")
+        field_language("bn")
+        expect(page.locator(".no-answer")).to_be_visible()
+        page.locator(".alt-langs").get_by_role("button", name="हिन्दी").click()
+        expect(page.locator(".answer-card h2")).to_have_text("दुकान के फ़र्श पर गिरी चीज़ साफ़ करना")
+        page.goto(BASE + "/field/course")
+        expect(page.locator(".module-card")).to_have_count(3)
+        expect(page.locator(".module-link.pending")).to_have_count(1)
+        page.locator(".module-link.practice").first.click()
+        expect(page.locator(".choice").first).to_be_visible()
+        print("field: other clients' workers, language fallback, course modules and practice ok")
+
         # Console: a revised SOP suspends live knowledge.
         sign_in("Asha")
         page.goto(BASE + "/sources")
@@ -217,19 +249,38 @@ def main() -> None:
         expect(page.get_by_text("Review time per procedure and language")).to_be_visible()
         print("console: insights reconciled for every period")
 
+        page.goto(BASE + "/insights?client=cl-retail")
+        expect(page.get_by_text("Corner Basket Stores: what learners asked")).to_be_visible()
+        expect(page.get_by_text("matches the raw event count")).to_be_visible(timeout=30000)
+        print("console: insights for one client reconciled")
+
+        page.goto(BASE + "/checklist")
+        expect(page.locator(".checks")).to_be_visible(timeout=60000)
+        expect(page.locator(".check")).to_have_count(15)
+        for text in page.locator(".check.fail").all_inner_texts():
+            print("FAILED CHECK:", text.replace("\n", " | "))
+        expect(page.locator(".check.fail")).to_have_count(0)
+        print("console: acceptance checklist ran with no failures:", page.locator(".check.pass").count(), "verified")
+
         sign_in("Platform Admin")
+        page.goto(BASE + "/clients")
+        expect(page.locator(".client-row")).to_have_count(4)
+        page.locator(".client-row", has_text="Tamarind").click()
+        expect(page.get_by_role("heading", name="Tamarind Co-operative Bank")).to_be_visible()
+        page.get_by_role("button", name="Export package").click()
+        expect(toast.filter(has_text="Tamarind Bank package 1 exported")).to_be_visible()
         page.goto(BASE + "/packages")
         page.get_by_role("button", name="Export package").click()
-        expect(toast.filter(has_text="Package 1 exported")).to_be_visible()
+        expect(toast.filter(has_text="Synthetic Logistics package 1 exported")).to_be_visible()
         with page.expect_download() as dl:
-            page.get_by_role("button", name="Download").first.click()
-        assert dl.value.suggested_filename == "swift-knowledge-package-v1.zip"
+            page.locator(".panel", has_text="Synthetic Logistics · package 1").get_by_role("button", name="Download").click()
+        assert dl.value.suggested_filename == "swift-knowledge-logistics-v1.zip", dl.value.suggested_filename
         page.goto(BASE + "/activity")
         expect(page.get_by_role("cell", name="Exported a knowledge package")).to_be_visible()
         print("console: package exported, downloaded and logged")
 
         page.goto(BASE + "/packages")
-        expect(page.get_by_text("Package 1").first).to_be_visible(timeout=30000)
+        expect(page.get_by_text("package 1").first).to_be_visible(timeout=30000)
         page.get_by_role("button", name="Reset demo data").click()
         page.get_by_role("dialog").get_by_role("button", name="Reset demo data").click()
         expect(toast.filter(has_text="Demo data reset")).to_be_visible(timeout=60000)

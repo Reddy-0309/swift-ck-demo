@@ -1,16 +1,17 @@
 import { Navigate, useNavigate } from "react-router-dom";
 import { useEngine } from "../app/engine";
 import { personDoes, personName, personRole, workspaceOf } from "../app/people";
+import { CLIENTS, clientForRole } from "../domain/clients";
 import type { User } from "../domain/types";
 import { BrandGlyph } from "../ui/Brand";
 import { initials } from "../ui/kit";
 
 const FLOW = [
-  "Upload an SOP. Drafts are created that quote it word for word.",
-  "An expert reviews, classifies the risk and publishes.",
-  "Each of 8 languages is translated and signed off separately.",
-  "Workers get the exact approved steps for their task.",
-  "The team sees what workers ask for, and what is missing.",
+  "Swift receives the client's SOPs with the course brief. Drafts quote them word for word.",
+  "A named expert reviews, classifies the risk and publishes. Nobody approves their own work.",
+  "Each language is approved separately, with an independent safety check.",
+  "The approved guides ship with the e-learning modules and open on the job.",
+  "Each client sees what learners asked for at work, and where guidance is missing.",
 ];
 
 function PersonaButton({ user, onPick }: { user: User; onPick: (u: User) => void }) {
@@ -43,8 +44,11 @@ export function SignInPage() {
         <span className="brand-mark">
           <BrandGlyph size={22} />
         </span>
-        <h1>Approved procedures, in every worker's language.</h1>
-        <p>Swift Knowledge turns SOPs into verified, step-by-step guidance. Nothing reaches a worker until a named expert has approved it.</p>
+        <h1>The course ends. The job doesn't.</h1>
+        <p>
+          Swift Solutions builds e-learning programmes for organisations. Swift Knowledge adds what learners need afterwards: the client's approved procedures, on the
+          job, in their own language, with practice and evidence for the client.
+        </p>
         <ol>
           {FLOW.map((text, i) => (
             <li key={text}>
@@ -53,27 +57,39 @@ export function SignInPage() {
             </li>
           ))}
         </ol>
-        <p className="foot">Demo with sample content and 90 days of sample usage. Everything runs in your browser.</p>
+        <p className="foot">Demo with four fictional clients, synthetic content and 90 days of sample usage. Everything runs in your browser.</p>
       </section>
       <main className="signin-main">
         <h2>Choose who you are</h2>
         <div className="persona-group">
-          <h3>Frontline workers</h3>
-          <p>Opens the field app: pick a task, get the approved steps, practise decisions.</p>
-          <div className="personas">
-            {field.map((u) => (
-              <PersonaButton key={u.id} user={u} onPick={pick} />
-            ))}
-          </div>
-        </div>
-        <div className="persona-group">
-          <h3>Knowledge team</h3>
-          <p>Opens the console: sources, review and approval, languages, media, insights.</p>
+          <h3>Swift Solutions team</h3>
+          <p>Opens Knowledge Studio: client SOPs, review and approval, languages, media, packages and insights.</p>
           <div className="personas">
             {team.map((u) => (
               <PersonaButton key={u.id} user={u} onPick={pick} />
             ))}
           </div>
+        </div>
+        <div className="persona-group">
+          <h3>Client learners at work</h3>
+          <p>Opens the worker app their employer received with its course: approved guides, their course modules and practice.</p>
+          {CLIENTS.map((c) => {
+            const people = field.filter((u) => clientForRole(u.workRole)?.id === c.id);
+            if (!people.length) return null;
+            return (
+              <div key={c.id} className="client-group">
+                <h4>
+                  <span className="client-dot" style={{ background: c.colour }} />
+                  {c.name} <span className="muted">· {c.industry}</span>
+                </h4>
+                <div className="personas">
+                  {people.map((u) => (
+                    <PersonaButton key={u.id} user={u} onPick={pick} />
+                  ))}
+                </div>
+              </div>
+            );
+          })}
         </div>
       </main>
     </div>

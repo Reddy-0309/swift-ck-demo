@@ -1,5 +1,6 @@
 // Read-only views over the state, shared by several screens.
 
+import { clientForKey, clientOfScenario, type Client, type ClientModule } from "../domain/clients";
 import { can, type Principal } from "../domain/core";
 import { effectiveRisk, getObject, hazardCheckRequired, sourceVariantOf, variantsOf } from "../domain/governance";
 import { approvalCapability } from "../domain/media";
@@ -208,4 +209,52 @@ export function entityHref(s: DemoState, type: string, id: string): string | nul
   }
   if (type === "source") return s.sources.some((x) => x.id === id) ? `/sources/${id}` : null;
   return null;
+}
+
+// ---------------------------------------------------------------- clients
+
+export type ModuleStatus = "ready" | "partial" | "gap";
+
+export interface ModuleOverview {
+  module: ClientModule;
+  guides: VersionSummary[];
+  missing: string[];
+  scenarios: number;
+  status: ModuleStatus;
+}
+
+export interface ClientOverview {
+  client: Client;
+  versions: VersionSummary[];
+  live: VersionSummary[];
+  inProgress: VersionSummary[];
+  modules: ModuleOverview[];
+  readyModules: number;
+  coverage: { language: Language; live: number }[];
+  scenarios: number;
+  latestPackage: DemoState["packages"][number] | undefined;
+}
+
+/** Programme readiness for one client: which modules have live guides, in which languages. */
+export function clientOverview(s: DemoState, client: Client, all: VersionSummary[] = currentVersions(s)): ClientOverview {
+  const versions = all.filter((v) => clientForKey(v.objectKey)?.id === client.id);
+  const live = versions.filter((v) => v.state === "published");
+  const modules = client.programme.modules.map((m) => {
+    const guides = versions.filter((v) => m.objectKeys.includes(v.objectKey));
+    const missing = m.objectKeys.filter((k) => !live.some((v) => v.objectKey === k));
+    const scenarios = m.scenarioKeys.filter((k) => s.scenarios.some((x) => x.scenarioKey === k && x.active)).length;
+    const status: ModuleStatus = !m.objectKeys.length || missing.length === m.objectKeys.length ? "gap" : missing.length ? "partial" : "ready";
+    return { module: m, guides, missing, scenarios, status };
+  });
+  return {
+    client,
+    versions,
+    live,
+    inProgress: versions.filter((v) => v.state !== "published" && v.state !== "superseded" && v.state !== "withdrawn"),
+    modules,
+    readyModules: modules.filter((m) => m.status === "ready").length,
+    coverage: client.languages.map((language) => ({ language, live: live.filter((v) => v.languages[language] === "approved").length })),
+    scenarios: s.scenarios.filter((x) => x.active && clientOfScenario(x)?.id === client.id).length,
+    latestPackage: s.packages.filter((p) => p.clientId === client.id).sort((a, b) => b.packageVersion - a.packageVersion)[0],
+  };
 }

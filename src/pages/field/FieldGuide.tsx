@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import { store, useEngine } from "../../app/engine";
+import { clientForRole } from "../../domain/clients";
 import { tasksForRole } from "../../app/selectors";
 import { ingestEvent } from "../../domain/analytics";
 import { CONTRACT_VERSION, type C2KnowledgeResponse, type MediaRef } from "../../domain/contracts";
 import { newId, pseudonym } from "../../domain/core";
-import { resolve } from "../../domain/delivery";
+import { eligibleVersions, resolve } from "../../domain/delivery";
+import { LANGUAGES, type Language } from "../../domain/types";
 import { CONTEXT_LABELS } from "../../domain/labels";
 import { useField } from "../../layouts/FieldLayout";
 import { Icon } from "../../ui/icons";
@@ -15,7 +17,7 @@ import { FieldAnswer } from "./FieldAnswer";
 /** Guidance for a task (with optional situation and equipment) or for a typed question. */
 export default function FieldGuide() {
   const { state, principal } = useEngine();
-  const { t, language } = useField();
+  const { t, language, setLanguage } = useField();
   const [params, setParams] = useSearchParams();
   const task = params.get("task");
   const situation = params.get("situation");
@@ -23,8 +25,10 @@ export default function FieldGuide() {
   const query = params.get("q");
   const entry = tasksForRole(state, principal?.workRole ?? null).find((x) => x.code === task);
   const labels = CONTEXT_LABELS[language];
-  const situations = entry?.situations.length ? state.context.filter((c) => c.kind === "situation").map((c) => c.code) : [];
-  const assets = state.context.filter((c) => c.kind === "asset").map((c) => c.code);
+  // Situations and equipment come from the client's task set-up, so a worker only sees their own.
+  const taskSetup = clientForRole(principal?.workRole)?.tasks.find((x) => x.code === task);
+  const situations = entry?.situations.length ? (taskSetup?.situations ?? entry.situations) : [];
+  const assets = taskSetup?.assets ?? [];
   const waitingForEquipment = !!entry?.needsEquipment && !asset;
 
   const [response, setResponse] = useState<C2KnowledgeResponse | null>(null);
@@ -59,6 +63,13 @@ export default function FieldGuide() {
       setError(e);
     }
   }, [key, principal, waitingForEquipment, task, situation, asset, query, language]);
+
+  /** Languages in which this task already has approved guidance for the worker's role. */
+  function approvedLanguagesFor(code: string | null, role: string | null): Language[] {
+    const versions = eligibleVersions(state).filter((v) => (!code || v.applicability.taskIds.includes(code)) && !!role && v.applicability.roles.includes(role));
+    const found = new Set(state.variants.filter((x) => x.state === "approved" && versions.some((v) => v.id === x.versionId)).map((x) => x.language));
+    return LANGUAGES.filter((l) => found.has(l));
+  }
 
   function choose(name: "situation" | "asset", value: string | null) {
     const next = new URLSearchParams(params);
@@ -129,7 +140,16 @@ export default function FieldGuide() {
       )}
 
       <ErrorNotice error={error} />
-      {response && !waitingForEquipment && <FieldAnswer response={response} language={language} state={state} onMedia={recordMedia} />}
+      {response && !waitingForEquipment && (
+        <FieldAnswer
+          response={response}
+          language={language}
+          state={state}
+          onMedia={recordMedia}
+          alternatives={response.reason === "language_not_approved" ? approvedLanguagesFor(task, principal?.workRole ?? null) : []}
+          onLanguage={setLanguage}
+        />
+      )}
     </>
   );
 }

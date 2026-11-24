@@ -1,5 +1,6 @@
 // Shared interface components: buttons, status pills, panels, dialogs, toasts, tables.
 
+import { CLIENTS } from "../domain/clients";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { errorMessage } from "../app/useAction";
@@ -335,5 +336,22 @@ export function LanguageSelect({ value, onChange, languages, label = "Language" 
         ))}
       </select>
     </Field>
+  );
+}
+
+/** Client filter: every client, or one. */
+export function ClientSelect({ value, onChange, allLabel = "All clients" }: { value: string; onChange: (id: string) => void; allLabel?: string }) {
+  return (
+    <label className="select-inline">
+      <span className="sr-only">Client</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)} aria-label="Client">
+        <option value="">{allLabel}</option>
+        {CLIENTS.map((c) => (
+          <option key={c.id} value={c.id}>
+            {c.name}
+          </option>
+        ))}
+      </select>
+    </label>
   );
 }

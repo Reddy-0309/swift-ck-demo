@@ -6,8 +6,9 @@
 import type { Database, SqlJsStatic } from "sql.js";
 import { Forbidden, ValidationFailed, newId, nowMs, pseudonym, type Principal } from "./core";
 import { C5AnalyticsEvent, CLIENT_EVENTS } from "./contracts";
+import { clientForKey, clientOfEvent, clientOfObject, clientOfScenario, clientOfVersion } from "./clients";
 import { getObject, sourceVariantOf } from "./governance";
-import type { DemoState } from "./types";
+import type { AuditEntry, DemoState } from "./types";
 
 export const MIN_CELL_SIZE = 5;
 export const RETENTION_DAYS = 365;
@@ -85,35 +86,64 @@ function sqlEngine(): Promise<SqlJsStatic> {
 const SCHEMA = `
 CREATE TABLE analytics_events (event_id TEXT PRIMARY KEY, event_name TEXT, actor TEXT, occurred_at TEXT,
   task_id TEXT, media_type TEXT, detail TEXT, object_id TEXT, object_version INTEGER, language TEXT,
-  outcome TEXT, channel TEXT, synthetic INTEGER);
+  outcome TEXT, channel TEXT, synthetic INTEGER, client_id TEXT);
 CREATE INDEX events_by_time ON analytics_events (occurred_at, event_name);
 CREATE TABLE knowledge_objects (id TEXT PRIMARY KEY, object_key TEXT, title TEXT);
-CREATE TABLE scenario_attempts (id TEXT PRIMARY KEY, mode TEXT, correct INTEGER, language TEXT, created_at TEXT);
-CREATE TABLE scenario_rule_results (attempt_id TEXT, mode TEXT, rule_id TEXT, met INTEGER, created_at TEXT);
-CREATE TABLE audit_log (id TEXT PRIMARY KEY, action TEXT, at TEXT);
+CREATE TABLE scenario_attempts (id TEXT PRIMARY KEY, scenario_key TEXT, mode TEXT, correct INTEGER, language TEXT, created_at TEXT, client_id TEXT);
+CREATE TABLE scenario_rule_results (attempt_id TEXT, scenario_key TEXT, mode TEXT, rule_id TEXT, met INTEGER, created_at TEXT, client_id TEXT);
+CREATE TABLE audit_log (id TEXT PRIMARY KEY, action TEXT, at TEXT, client_id TEXT);
 `;
+
+/** The client an audit entry concerns, if any (packages, sources, versions, variants, media). */
+export function auditClientId(s: DemoState, a: AuditEntry): string {
+  const versionOf = (id: string) => clientOfVersion(s, id)?.id;
+  switch (a.entityType) {
+    case "version":
+      return versionOf(a.entityId) ?? "";
+    case "variant":
+    case "language_variant": {
+      const v = s.variants.find((x) => x.id === a.entityId);
+      return v ? (versionOf(v.versionId) ?? "") : "";
+    }
+    case "media": {
+      const m = s.media.find((x) => x.id === a.entityId);
+      return m ? (versionOf(m.versionId) ?? "") : "";
+    }
+    case "source":
+      return clientForKey(s.sources.find((x) => x.id === a.entityId)?.documentKey)?.id ?? "";
+    case "object":
+      return clientOfObject(s, a.entityId)?.id ?? "";
+    case "package":
+      return s.packages.find((x) => x.id === a.entityId)?.clientId ?? "";
+    default:
+      return "";
+  }
+}
 
 function load(db: Database, s: DemoState): void {
   db.run(SCHEMA);
   db.run("BEGIN");
-  const ev = db.prepare("INSERT INTO analytics_events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)");
+  const ev = db.prepare("INSERT INTO analytics_events VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)");
   for (const e of s.events) {
-    ev.run([e.eventId, e.eventName, e.actor, e.occurredAt, e.taskId, e.mediaType, e.detail, e.objectId, e.objectVersion, e.language, e.outcome, e.channel, e.synthetic ? 1 : 0]);
+    const client = clientOfEvent(s, e)?.id ?? "";
+    ev.run([e.eventId, e.eventName, e.actor, e.occurredAt, e.taskId, e.mediaType, e.detail, e.objectId, e.objectVersion, e.language, e.outcome, e.channel, e.synthetic ? 1 : 0, client]);
   }
   ev.free();
   const ob = db.prepare("INSERT INTO knowledge_objects VALUES (?,?,?)");
   for (const o of s.objects) ob.run([o.id, o.objectKey, o.title]);
   ob.free();
-  const at = db.prepare("INSERT INTO scenario_attempts VALUES (?,?,?,?,?)");
-  const rr = db.prepare("INSERT INTO scenario_rule_results VALUES (?,?,?,?,?)");
+  const at = db.prepare("INSERT INTO scenario_attempts VALUES (?,?,?,?,?,?,?)");
+  const rr = db.prepare("INSERT INTO scenario_rule_results VALUES (?,?,?,?,?,?,?)");
+  const scenarioClient = new Map(s.scenarios.map((x) => [x.id, clientOfScenario(x)?.id ?? ""]));
   for (const a of s.attempts) {
-    at.run([a.id, a.mode, a.correct ? 1 : 0, a.language, a.createdAt]);
-    for (const r of a.ruleResults) rr.run([a.id, a.mode, r.ruleId, r.met ? 1 : 0, a.createdAt]);
+    const client = scenarioClient.get(a.scenarioId) ?? "";
+    at.run([a.id, a.scenarioKey, a.mode, a.correct ? 1 : 0, a.language, a.createdAt, client]);
+    for (const r of a.ruleResults) rr.run([a.id, a.scenarioKey, a.mode, r.ruleId, r.met ? 1 : 0, a.createdAt, client]);
   }
   at.free();
   rr.free();
-  const au = db.prepare("INSERT INTO audit_log VALUES (?,?,?)");
-  for (const a of s.audit) au.run([a.id, a.action, a.at]);
+  const au = db.prepare("INSERT INTO audit_log VALUES (?,?,?,?)");
+  for (const a of s.audit) au.run([a.id, a.action, a.at, auditClientId(s, a)]);
   au.free();
   db.run("COMMIT");
 }
@@ -124,7 +154,7 @@ export interface IndicatorDef {
   id: string;
   title: string;
   description: string;
-  /** Documented SQL; `:since` is the start of the selected period (ISO-8601). */
+  /** Documented SQL; `:since` is the start of the selected period (ISO-8601), `:client` a client ID or '' for all. */
   sql: string;
   keys: string[];
   denominatorLabel: string;
@@ -133,7 +163,7 @@ export interface IndicatorDef {
 
 const REQ = REQUEST_EVENTS.map((e) => `'${e}'`).join(", ");
 const GOV = GOVERNANCE_ACTIONS.map((a) => `'${a}'`).join(", ");
-const IN_PERIOD = "occurred_at >= :since";
+const IN_PERIOD = "occurred_at >= :since AND (:client = '' OR client_id = :client)";
 
 export const INDICATORS: IndicatorDef[] = [
   {
@@ -167,7 +197,7 @@ export const INDICATORS: IndicatorDef[] = [
     id: "object_views",
     title: "Most-used procedures",
     description: "Answers served, by procedure and exact version.",
-    sql: `SELECT o.title AS k1, CAST(e.object_version AS TEXT) AS k2, COUNT(*) AS n FROM analytics_events e JOIN knowledge_objects o ON o.id = e.object_id WHERE e.event_name = 'knowledge.viewed' AND e.${IN_PERIOD} GROUP BY o.title, e.object_version ORDER BY n DESC`,
+    sql: `SELECT o.title AS k1, CAST(e.object_version AS TEXT) AS k2, COUNT(*) AS n FROM analytics_events e JOIN knowledge_objects o ON o.id = e.object_id WHERE e.event_name = 'knowledge.viewed' AND e.occurred_at >= :since AND (:client = '' OR e.client_id = :client) GROUP BY o.title, e.object_version ORDER BY n DESC`,
     keys: ["procedure", "version"],
     denominatorLabel: "answers",
     breakdown: true,
@@ -203,17 +233,17 @@ export const INDICATORS: IndicatorDef[] = [
     id: "practice_by_mode",
     title: "Practice results",
     description: "Correct decisions out of attempts, guided and independent kept apart.",
-    sql: "SELECT mode AS k1, SUM(correct) AS n, COUNT(*) AS d FROM scenario_attempts WHERE created_at >= :since GROUP BY mode ORDER BY mode",
+    sql: "SELECT mode AS k1, SUM(correct) AS n, COUNT(*) AS d FROM scenario_attempts WHERE created_at >= :since AND (:client = '' OR client_id = :client) GROUP BY mode ORDER BY mode",
     keys: ["mode"],
     denominatorLabel: "attempts",
     breakdown: true,
   },
   {
     id: "rule_accuracy_independent",
-    title: "Independent checks by rule",
-    description: "Share of independent attempts that met each rule.",
-    sql: "SELECT rule_id AS k1, SUM(met) AS n, COUNT(*) AS d FROM scenario_rule_results WHERE mode = 'independent' AND created_at >= :since GROUP BY rule_id ORDER BY rule_id",
-    keys: ["rule"],
+    title: "Independent checks by scenario",
+    description: "Share of independent attempts that met every rule, per practice scenario.",
+    sql: "SELECT scenario_key AS k1, SUM(correct) AS n, COUNT(*) AS d FROM scenario_attempts WHERE mode = 'independent' AND created_at >= :since AND (:client = '' OR client_id = :client) GROUP BY scenario_key ORDER BY scenario_key",
+    keys: ["scenario"],
     denominatorLabel: "rule checks",
     breakdown: true,
   },
@@ -230,7 +260,7 @@ export const INDICATORS: IndicatorDef[] = [
     id: "governance_events",
     title: "Content changes",
     description: "Publications, translations and withdrawals from the audit log.",
-    sql: `SELECT action AS k1, COUNT(*) AS n FROM audit_log WHERE action IN (${GOV}) AND at >= :since GROUP BY action ORDER BY n DESC`,
+    sql: `SELECT action AS k1, COUNT(*) AS n FROM audit_log WHERE action IN (${GOV}) AND at >= :since AND (:client = '' OR client_id = :client) GROUP BY action ORDER BY n DESC`,
     keys: ["action"],
     denominatorLabel: "changes",
     breakdown: false,
@@ -253,8 +283,8 @@ export interface IndicatorResult extends IndicatorDef {
   minCellSize: number;
 }
 
-function compute(db: Database, def: IndicatorDef, since: string): IndicatorResult {
-  const result = db.exec(def.sql, { ":since": since })[0];
+function compute(db: Database, def: IndicatorDef, since: string, client: string): IndicatorResult {
+  const result = db.exec(def.sql, { ":since": since, ":client": client })[0];
   const rows: IndicatorRow[] = [];
   let total = 0;
   let denominatorTotal = 0;
@@ -289,6 +319,7 @@ export interface Dashboard {
   dataLabel: string;
   generatedAt: string;
   since: string;
+  client: string;
   indicators: IndicatorResult[];
   reconciliation: { allMatch: boolean; checks: ReconciliationCheck[] };
   caveats: string[];
@@ -301,16 +332,19 @@ export function periodStart(days: number): string {
   return new Date(ist.getTime() - (days - 1) * 86400000 - 330 * 60000).toISOString();
 }
 
-export async function dashboard(s: DemoState, since = periodStart(30)): Promise<Dashboard> {
+/** Dashboard for a period, for every client ('') or one client. */
+export async function dashboard(s: DemoState, since = periodStart(30), client = ""): Promise<Dashboard> {
   const SQL = await sqlEngine();
   const db = new SQL.Database();
   try {
     load(db, s);
-    const indicators = INDICATORS.map((d) => compute(db, d, since));
+    const indicators = INDICATORS.map((d) => compute(db, d, since, client));
     const byId = Object.fromEntries(indicators.map((i) => [i.id, i]));
-    const inPeriod = s.events.filter((e) => e.occurredAt >= since);
+    // Raw counts for reconciliation, filtered in code independently of the SQL.
+    const inPeriod = s.events.filter((e) => e.occurredAt >= since && (!client || clientOfEvent(s, e)?.id === client));
     const count = (...names: string[]) => inPeriod.filter((e) => names.includes(e.eventName)).length;
-    const attempts = s.attempts.filter((a) => a.createdAt >= since).length;
+    const scenarioClient = new Map(s.scenarios.map((x) => [x.id, clientOfScenario(x)?.id ?? ""]));
+    const attempts = s.attempts.filter((a) => a.createdAt >= since && (!client || scenarioClient.get(a.scenarioId) === client)).length;
     const checks: [string, number, number][] = [
       ["retrieval_outcomes", byId.retrieval_outcomes?.total ?? -1, count(...REQUEST_EVENTS)],
       ["requests_by_day", byId.requests_by_day?.total ?? -1, count(...REQUEST_EVENTS)],
@@ -325,6 +359,7 @@ export async function dashboard(s: DemoState, since = periodStart(30)): Promise<
       dataLabel: s.events.every((e) => e.synthetic) ? "Synthetic demonstration data" : "Authorized event data",
       generatedAt: new Date(nowMs()).toISOString(),
       since,
+      client,
       indicators,
       reconciliation: { allMatch: results.every((r) => r.match), checks: results },
       caveats: [

@@ -60,6 +60,126 @@ Do not share settlement amounts with delivery associates.
 export const PICKUP_SOP = pickupSop(15);
 export const PICKUP_SOP_R2 = pickupSop(12);
 
+export const PLANT_SOP_FILENAME = "sop-mt-012-isolation-and-vehicle-checks.md";
+export const BANK_SOP_FILENAME = "sop-br-003-branch-counter-procedures.md";
+export const STORE_SOP_FILENAME = "sop-rt-005-store-floor-safety.md";
+
+export const PLANT_SOP = `Document ID: SOP-MT-012
+Title: Isolation and vehicle pre-use checks
+Owner: Ironleaf Components Pvt. Ltd. (fictional demonstration organisation)
+Language: en
+Escalation route: Shift engineer on radio channel 3
+
+# Purpose
+This synthetic procedure exists only to demonstrate the governed knowledge workflow.
+It is not a real client SOP and must not be used as operational guidance.
+
+# Lockout and tagout before maintenance
+Roles: maintenance_technician
+Task ID: T-LOTO
+Before you begin, tell the machine operator that maintenance is starting.
+1. Turn the main isolator to OFF and fit your personal lock LK-7.
+2. Attach a red DANGER tag with your name and the date.
+3. Press the start button to confirm that the machine does not move.
+4. Wait 5 min for the flywheel to stop completely.
+Warning: Never remove another person's lock or tag.
+Do not start work if the machine moves when you press the start button.
+Escalate to the shift engineer if the isolator will not lock.
+
+# Forklift pre-use check
+Roles: forklift_operator
+Task ID: T-FORKLIFT-CHECK
+Equipment model: FL-25
+Assets: FL-25-01, FL-25-02
+1. Walk around the forklift and check the tyres and forks for cuts, cracks or bends.
+2. Test the horn, the lights and the reversing alarm.
+3. Test the service brake and the parking brake.
+4. Record the hour meter reading on checklist form FL-CHK.
+Do not use a forklift that fails any check; park it and remove the key.
+Escalate to the shift engineer if the brakes or the steering fail.
+`;
+
+export const BANK_SOP = `Document ID: SOP-BR-003
+Title: Branch counter procedures
+Owner: Tamarind Co-operative Bank (fictional demonstration organisation)
+Language: en
+Escalation route: Branch manager on extension 201
+
+# Purpose
+This synthetic procedure exists only to demonstrate the governed knowledge workflow.
+It is not a real client SOP and must not be used as operational guidance.
+
+# Opening the cash counter
+Roles: branch_officer
+Task ID: T-CASH-OPEN
+Before you begin, confirm that the second key holder is present.
+1. Collect the cash box from the strong room together with the second key holder.
+2. Count the opening cash in front of the second key holder.
+3. Enter the opening balance in counter register CR-1 and ask the second key holder to countersign.
+Do not open the counter if the count differs from the previous day's closing balance.
+Escalate to the branch manager if the count differs by any amount.
+
+# Customer identity check before account opening
+Roles: branch_officer
+Task ID: T-KYC-CHECK
+1. Ask the customer for one photo identity document and one address document.
+2. Check that the photo matches the customer and that the name matches application form AO-2.
+3. Scan both documents and attach them to the application.
+Do not accept a photocopy without seeing the original document.
+Escalate to the branch manager if the documents do not match.
+
+# Suspicious cash deposit
+Roles: branch_officer, branch_manager
+Task ID: T-SUSPICIOUS-TXN
+If a customer deposits more than 50000 rupees in cash and will not state the source, then complete the deposit normally.
+1. Complete the deposit in the normal way.
+2. Record the details in internal alert form STR-INT within 1 h.
+3. Inform the branch manager in person.
+Do not tell the customer that an alert has been raised.
+`;
+
+const storeSop = `Document ID: SOP-RT-005
+Title: Store floor safety
+Owner: Corner Basket Stores (fictional demonstration organisation)
+Language: en
+Escalation route: Store manager on the store radio
+
+# Purpose
+This synthetic procedure exists only to demonstrate the governed knowledge workflow.
+It is not a real client SOP and must not be used as operational guidance.
+
+# Cleaning up a spill on the shop floor
+Roles: store_associate
+Task ID: T-SPILL
+1. Stay next to the spill and ask a colleague to bring the spill kit.
+2. Place the yellow wet-floor sign at least 2 m before the spill.
+3. Wipe up the spill with the absorbent pads and dry the floor with a clean mop.
+4. Remove the sign only when the floor is completely dry.
+Do not leave a spill unattended, even for a short time.
+Warning: Do not touch spilled chemicals with bare hands; wear the gloves from the spill kit.
+
+# Daily fire exit and extinguisher check
+Roles: store_associate
+Task ID: T-FIRE-CHECK
+1. Walk to every fire exit and push the door to check that it opens freely.
+2. Check that each extinguisher gauge needle is in the green zone.
+3. Check that the safety pin and seal of each extinguisher are in place.
+4. Sign the fire check log FC-1 with the time of the check.
+Do not lock or block a fire exit at any time.
+Escalate to the store manager if an exit is blocked or a gauge is in the red zone.
+
+# Customer injury in the store
+Roles: store_associate
+Task ID: T-CUSTOMER-INJURY
+1. Stay with the customer and ask them not to move if they may be hurt.
+2. Call the store first aider on the store radio.
+3. Call 112 if the customer is unconscious or bleeding heavily.
+Do not give the customer any medicine.
+Escalate to the store manager after the first aider arrives.
+`;
+
+export const STORE_SOP = storeSop;
+
 type DocxPara = ["meta" | "p" | "h1" | "num", string];
 
 export const CONVEYOR_SOP: DocxPara[] = [

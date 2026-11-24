@@ -11,11 +11,13 @@ import { Button, ErrorNotice, Modal, initials, useToast } from "../ui/kit";
 
 const NAV: { to: string; label: string; icon: IconName; anyOf?: Capability[] }[] = [
   { to: "/", label: "Home", icon: "home" },
+  { to: "/clients", label: "Clients", icon: "building" },
   { to: "/knowledge", label: "Knowledge", icon: "book", anyOf: ["knowledge.read"] },
   { to: "/sources", label: "Sources", icon: "upload", anyOf: ["source.upload", "draft.edit"] },
   { to: "/insights", label: "Insights", icon: "chart", anyOf: ["analytics.view"] },
   { to: "/packages", label: "Packages", icon: "package", anyOf: ["package.export"] },
   { to: "/activity", label: "Activity", icon: "history", anyOf: ["audit.view"] },
+  { to: "/checklist", label: "Acceptance checklist", icon: "checklist" },
 ];
 
 export function PageLoading() {
@@ -80,7 +82,7 @@ export function ConsoleLayout() {
           </span>
           <div>
             <strong>Swift Knowledge</strong>
-            <span>Knowledge team console</span>
+            <span>Swift Solutions · Knowledge Studio</span>
           </div>
         </div>
         <nav className="nav" aria-label="Main">

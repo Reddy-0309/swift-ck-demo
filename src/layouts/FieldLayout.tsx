@@ -1,6 +1,7 @@
 import { Suspense, createContext, useCallback, useContext, useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { useEngine } from "../app/engine";
+import { clientOf } from "../app/people";
 import { WORKER_TEXT, type WorkerText } from "../domain/labels";
 import { LANGUAGES, LANGUAGE_NAMES, isLanguage, type Language } from "../domain/types";
 import { BrandGlyph } from "../ui/Brand";
@@ -45,7 +46,14 @@ export function FieldLayout() {
     [userId],
   );
   const t = WORKER_TEXT[language];
-  const inPractice = useLocation().pathname.startsWith("/field/practice");
+  const path = useLocation().pathname;
+  const tab = path.startsWith("/field/practice") ? "practice" : path.startsWith("/field/course") ? "course" : "guide";
+  const client = clientOf(user);
+  const tabs = [
+    { id: "guide", to: "/field", icon: "book", label: t.guidance },
+    { id: "course", to: "/field/course", icon: "course", label: t.myCourse },
+    { id: "practice", to: "/field/practice", icon: "target", label: t.practice },
+  ] as const;
 
   return (
     <FieldContext.Provider value={{ language, setLanguage, t }}>
@@ -55,7 +63,8 @@ export function FieldLayout() {
             <BrandGlyph size={16} />
           </span>
           <span className="title" lang="en">
-            Swift Knowledge
+            <strong>{client?.short ?? "Swift Knowledge"}</strong>
+            <span>Guides by Swift Solutions</span>
           </span>
           <label className="sr-only" htmlFor="field-language">
             {t.language}
@@ -78,14 +87,12 @@ export function FieldLayout() {
         </main>
         <nav className="bottom-nav" aria-label="Field app">
           <div className="inner">
-            <Link to="/field" className={inPractice ? "" : "active"} aria-current={inPractice ? undefined : "page"}>
-              <Icon name="book" size={22} />
-              {t.guidance}
-            </Link>
-            <Link to="/field/practice" className={inPractice ? "active" : ""} aria-current={inPractice ? "page" : undefined}>
-              <Icon name="target" size={22} />
-              {t.practice}
-            </Link>
+            {tabs.map((x) => (
+              <Link key={x.id} to={x.to} className={tab === x.id ? "active" : ""} aria-current={tab === x.id ? "page" : undefined}>
+                <Icon name={x.icon} size={22} />
+                {x.label}
+              </Link>
+            ))}
           </div>
         </nav>
       </div>

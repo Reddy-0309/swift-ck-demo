@@ -279,6 +279,7 @@ export interface AuditEntry {
 
 export interface KnowledgePackageRecord {
   id: string;
+  clientId: string;
   packageVersion: number;
   generatedAt: string;
   generatedBy: string;
@@ -294,6 +295,9 @@ export interface PackageManifest {
   contract_version: "0.1-demo";
   package_version: number;
   tenant_id: string;
+  client_id: string;
+  client_name: string;
+  programme_code: string;
   generated_at: string;
   generated_by: string;
   distribution: "general";

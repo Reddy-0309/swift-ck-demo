@@ -2,7 +2,8 @@ import { useMemo } from "react";
 import { Link } from "react-router-dom";
 import { useEngine } from "../../app/engine";
 import { personName, personRole } from "../../app/people";
-import { currentVersions, inboxFor, type InboxItem } from "../../app/selectors";
+import { clientOverview, currentVersions, inboxFor, type InboxItem } from "../../app/selectors";
+import { CLIENTS } from "../../domain/clients";
 import { LANGUAGES } from "../../domain/types";
 import { Icon, type IconName } from "../../ui/icons";
 import { Empty, PageHeader, Panel, Pill, Stat, timeAgo } from "../../ui/kit";
@@ -17,11 +18,11 @@ const KIND: Record<InboxItem["kind"], [string, IconName, "amber" | "blue" | "vio
 };
 
 const FLOW: { title: string; text: string; to: string }[] = [
-  { title: "Upload", text: "Add an SOP. Drafts are extracted that quote it word for word.", to: "/sources" },
-  { title: "Approve", text: "An expert corrects, classifies the risk and publishes.", to: "/knowledge" },
-  { title: "Translate", text: "Each language is reviewed, and safety text checked, separately.", to: "/knowledge" },
-  { title: "Deliver", text: "Workers get the exact steps for their task, or a clear “no answer”.", to: "/knowledge" },
-  { title: "Improve", text: "See what workers asked for and where guidance is missing.", to: "/insights" },
+  { title: "Receive", text: "A client shares its SOPs with the course brief. Drafts quote them word for word.", to: "/sources" },
+  { title: "Approve", text: "An expert corrects the draft, classifies the risk and publishes it.", to: "/knowledge" },
+  { title: "Localise", text: "Each language is approved separately, with an independent safety check.", to: "/knowledge" },
+  { title: "Deliver", text: "Guides ship with the e-learning modules, as a package or a live service.", to: "/packages" },
+  { title: "Evidence", text: "Show each client what learners asked for on the job, and what is missing.", to: "/insights" },
 ];
 
 function greeting(): string {
@@ -44,15 +45,16 @@ export default function Home() {
       if (e.eventName === "knowledge.viewed") answered += 1;
     }
     const languages = live.reduce((n, v) => n + LANGUAGES.filter((l) => v.languages[l] === "approved").length, 0);
-    return { live: live.length, languages, possible: live.length * LANGUAGES.length, requests, answered };
+    const clients = CLIENTS.map((c) => clientOverview(state, c, versions));
+    return { live: live.length, languages, possible: live.length * LANGUAGES.length, requests, answered, clients };
   }, [state]);
 
   return (
     <div className="page">
       <PageHeader title={`${greeting()}, ${user ? personName(user) : ""}`} subtitle={user ? personRole(user) : undefined} />
       <div className="stats">
-        <Stat value={stats.live} label="Live procedures" />
-        <Stat value={`${stats.languages}/${stats.possible}`} label="Approved language versions" />
+        <Stat value={CLIENTS.length} label="Client programmes" sub={`${stats.clients.reduce((n, c) => n + c.readyModules, 0)} of ${stats.clients.reduce((n, c) => n + c.client.programme.modules.length, 0)} modules have live guides`} />
+        <Stat value={stats.live} label="Live guides" sub={`${stats.languages} approved language versions`} />
         <Stat value={stats.requests.toLocaleString()} label="Guidance requests, last 30 days" />
         <Stat value={stats.requests ? `${Math.round((stats.answered / stats.requests) * 100)}%` : "—"} label="Answered with approved steps" />
       </div>
@@ -82,7 +84,31 @@ export default function Home() {
             </ul>
           )}
         </Panel>
-        <Panel title="How Swift Knowledge works" flush>
+        <Panel title="Client programmes" actions={<Link to="/clients" className="small">All clients</Link>} flush>
+          <ul className="inbox">
+            {stats.clients.map((o) => (
+              <li key={o.client.id}>
+                <Link to={`/clients/${o.client.id}`}>
+                  <span className="client-dot" style={{ background: o.client.colour }} />
+                  <span className="what">
+                    <strong>{o.client.name}</strong>
+                    <span>{o.client.programme.title}</span>
+                  </span>
+                  <span className="ready-bar small-bar" aria-hidden="true">
+                    {o.modules.map((m) => (
+                      <span key={m.module.id} className={`seg ${m.status}`} />
+                    ))}
+                  </span>
+                  <span className="muted small nowrap">
+                    {o.readyModules}/{o.modules.length} modules ready
+                  </span>
+                  <Icon name="chevronRight" size={16} />
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </Panel>
+        <Panel title="How Swift Knowledge fits the e-learning service" flush>
           <ol className="flow">
             {FLOW.map((step, i) => (
               <li key={step.title}>

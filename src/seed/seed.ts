@@ -31,11 +31,35 @@ import {
   CONVEYOR_FIGURE_SVG,
   CONVEYOR_SOP,
   CONVEYOR_SOP_FILENAME,
+  BANK_SOP,
+  BANK_SOP_FILENAME,
   PICKUP_SOP,
   PICKUP_SOP_FILENAME,
+  PLANT_SOP,
+  PLANT_SOP_FILENAME,
+  STORE_SOP,
+  STORE_SOP_FILENAME,
   buildDocx,
 } from "./fixtures";
 import { SCENARIO_DEFINITION, SCENARIO_KEY } from "./scenario";
+import {
+  CASH_KEY,
+  CLIENT_TRANSLATIONS,
+  FIRE_KEY,
+  FORKLIFT_KEY,
+  INJURY_KEY,
+  KYC_KEY,
+  KYC_SCENARIO,
+  KYC_SCENARIO_KEY,
+  LOTO_KEY,
+  LOTO_SCENARIO,
+  LOTO_SCENARIO_KEY,
+  PENDING_TRANSLATIONS,
+  SPILL_KEY,
+  SPILL_SCENARIO,
+  SPILL_SCENARIO_KEY,
+  SUSPICIOUS_KEY,
+} from "./clientContent";
 import {
   ADDRESS_KEY,
   ANNOTATION_LABELS,
@@ -61,6 +85,9 @@ const USERS: [username: string, name: string, roles: string[], workRole: string 
   ["arjun.rider", "Arjun (Delivery associate)", ["worker"], "delivery_associate"],
   ["lakshmi.tech", "Lakshmi (Maintenance technician)", ["worker"], "maintenance_technician"],
   ["deepa.supervisor", "Deepa (Hub supervisor)", ["worker"], "hub_supervisor"],
+  ["karthik.forklift", "Karthik (Forklift operator)", ["worker"], "forklift_operator"],
+  ["farhan.officer", "Farhan (Branch officer)", ["worker"], "branch_officer"],
+  ["priya.store", "Priya (Store associate)", ["worker"], "store_associate"],
 ];
 
 const CONTEXT: ContextCode[] = [
@@ -78,6 +105,21 @@ const CONTEXT: ContextCode[] = [
   { kind: "asset", code: "EQ-1000-B", label: "Conveyor line B (synthetic)" },
   { kind: "asset", code: "EQ-2000-X", label: "Sorter X (synthetic, unrelated asset)" },
   { kind: "equipment_model", code: "CV-1000", label: "Conveyor model CV-1000 (fictional)" },
+  { kind: "role", code: "forklift_operator", label: "Forklift operator" },
+  { kind: "role", code: "branch_officer", label: "Branch officer" },
+  { kind: "role", code: "branch_manager", label: "Branch manager" },
+  { kind: "role", code: "store_associate", label: "Store associate" },
+  { kind: "task", code: "T-LOTO", label: "Lockout and tagout" },
+  { kind: "task", code: "T-FORKLIFT-CHECK", label: "Forklift pre-use check" },
+  { kind: "task", code: "T-CASH-OPEN", label: "Opening the cash counter" },
+  { kind: "task", code: "T-KYC-CHECK", label: "Customer identity check" },
+  { kind: "task", code: "T-SUSPICIOUS-TXN", label: "Suspicious transaction" },
+  { kind: "task", code: "T-SPILL", label: "Spill on the shop floor" },
+  { kind: "task", code: "T-FIRE-CHECK", label: "Fire exit and extinguisher check" },
+  { kind: "task", code: "T-CUSTOMER-INJURY", label: "Customer injury (in review)" },
+  { kind: "asset", code: "FL-25-01", label: "Forklift FL-25-01 (synthetic)" },
+  { kind: "asset", code: "FL-25-02", label: "Forklift FL-25-02 (synthetic)" },
+  { kind: "equipment_model", code: "FL-25", label: "Forklift model FL-25 (fictional)" },
 ];
 
 export function demoUsers(): User[] {
@@ -158,19 +200,20 @@ export async function seedDemo(store: Store, options: SeedOptions = {}): Promise
     const sop2 = await uploadSource(store, author, CONVEYOR_SOP_FILENAME, await buildDocx(CONVEYOR_SOP), rights);
     tick(3);
     const drafts2 = store.transact((s) => extractDrafts(s, author, sop2.id, heuristicExtractor)).createdVersionIds;
+    const allDrafts = [...drafts1, ...drafts2];
     const byKey = (key: string): string => {
       const s = store.getState();
-      const id = [...drafts1, ...drafts2].find((v) => getObject(s, s.versions.find((x) => x.id === v)?.objectId ?? "").objectKey === key);
+      const id = allDrafts.find((v) => getObject(s, s.versions.find((x) => x.id === v)?.objectId ?? "").objectKey === key);
       if (!id) throw new Error(`Seed: expected extracted object '${key}'`);
       return id;
     };
 
-    const publish = (key: string, risk: RiskClass, dist: Distribution, reviewMinutes: number) => {
+    const publish = (key: string, risk: RiskClass, dist: Distribution, reviewMinutes: number, approver: Principal = sme) => {
       const id = byKey(key);
       tick(12);
       store.transact((s) => submitForReview(s, author, id));
       tick(reviewMinutes);
-      store.transact((s) => approveAndPublish(s, sme, id, { riskClass: risk, distributionClass: dist, effectiveFrom: nowIso(), note: "Synthetic demonstration content" }));
+      store.transact((s) => approveAndPublish(s, approver, id, { riskClass: risk, distributionClass: dist, effectiveFrom: nowIso(), note: "Synthetic demonstration content" }));
       return id;
     };
 
@@ -191,6 +234,27 @@ export async function seedDemo(store: Store, options: SeedOptions = {}): Promise
     store.transact((s) => submitForReview(s, author, byKey(ADDRESS_KEY)));
     const conveyor = publish(CONVEYOR_KEY, "HIGH", "general", 34);
 
+    const translate = (key: string, versionId: string, language: Language, translation: { title: string; blocks: string[] }, approve = true) => {
+      tick(15);
+      const variant = store.transact((s) => {
+        const source = sourceVariantOf(s, versionId);
+        const blocks = [...(source?.blocks ?? [])].sort((a, b) => a.order - b.order);
+        if (blocks.length !== translation.blocks.length) throw new Error(`Seed: ${key}/${language} block count mismatch`);
+        return upsertTranslation(s, author, versionId, {
+          language,
+          title: translation.title,
+          blocks: blocks.map((b, i) => ({ id: b.id, text: translation.blocks[i] as string })),
+        });
+      });
+      if (!approve) return;
+      tick(11 + (language.charCodeAt(0) % 9));
+      store.transact((s) => bilingualApprove(s, bilingual, variant.id, "Demonstration translation; native-speaker review still required before real use."));
+      if (hazardCheckRequired(store.getState(), variant)) {
+        tick(6);
+        store.transact((s) => hazardCheck(s, hazard, variant.id, "Warning, prohibition and escalation text checked against the English source."));
+      }
+    };
+
     // ---------------------------------------------------------------- translations (7 Indic languages)
     for (const [key, versionId] of [
       [PICKUP_KEY, pickup],
@@ -198,23 +262,7 @@ export async function seedDemo(store: Store, options: SeedOptions = {}): Promise
       [CONVEYOR_KEY, conveyor],
     ] as const) {
       for (const [language, translation] of Object.entries(TRANSLATIONS[key] ?? {}) as [IndicLanguage, { title: string; blocks: string[] }][]) {
-        tick(15);
-        const variant = store.transact((s) => {
-          const source = sourceVariantOf(s, versionId);
-          const blocks = [...(source?.blocks ?? [])].sort((a, b) => a.order - b.order);
-          if (blocks.length !== translation.blocks.length) throw new Error(`Seed: ${key}/${language} block count mismatch`);
-          return upsertTranslation(s, author, versionId, {
-            language,
-            title: translation.title,
-            blocks: blocks.map((b, i) => ({ id: b.id, text: translation.blocks[i] as string })),
-          });
-        });
-        tick(11 + (language.charCodeAt(0) % 9));
-        store.transact((s) => bilingualApprove(s, bilingual, variant.id, "Demonstration translation; native-speaker review still required before real use."));
-        if (hazardCheckRequired(store.getState(), variant)) {
-          tick(6);
-          store.transact((s) => hazardCheck(s, hazard, variant.id, "Warning, prohibition and escalation text checked against the English source."));
-        }
+        translate(key, versionId, language, translation);
       }
     }
 
@@ -262,6 +310,54 @@ export async function seedDemo(store: Store, options: SeedOptions = {}): Promise
         definition: SCENARIO_DEFINITION,
       }),
     );
+
+    // ---------------------------------------------------------------- Swift's other clients
+    for (const [filename, text] of [
+      [PLANT_SOP_FILENAME, PLANT_SOP],
+      [BANK_SOP_FILENAME, BANK_SOP],
+      [STORE_SOP_FILENAME, STORE_SOP],
+    ] as const) {
+      tick(60 * 26); // clients were onboarded on different days
+      const source = await uploadSource(store, author, filename, new TextEncoder().encode(text), rights);
+      tick(4);
+      allDrafts.push(...store.transact((s) => extractDrafts(s, author, source.id, heuristicExtractor)).createdVersionIds);
+    }
+    const released: [string, string][] = [
+      [LOTO_KEY, publish(LOTO_KEY, "HIGH", "general", 41)],
+      [FORKLIFT_KEY, publish(FORKLIFT_KEY, "MEDIUM", "general", 23, sme2)],
+      [CASH_KEY, publish(CASH_KEY, "LOW", "general", 16, sme2)],
+      [KYC_KEY, publish(KYC_KEY, "MEDIUM", "general", 29)],
+      [SUSPICIOUS_KEY, publish(SUSPICIOUS_KEY, "HIGH", "restricted", 37)],
+      [SPILL_KEY, publish(SPILL_KEY, "LOW", "general", 14, sme2)],
+      [FIRE_KEY, publish(FIRE_KEY, "MEDIUM", "general", 21, sme2)],
+    ];
+    // Left in review on purpose: the extractor flagged "may" for the expert to settle.
+    tick(18);
+    store.transact((s) => submitForReview(s, author, byKey(INJURY_KEY)));
+    for (const [key, versionId] of released) {
+      for (const [language, translation] of Object.entries(CLIENT_TRANSLATIONS[key] ?? {}) as [Language, { title: string; blocks: string[] }][]) {
+        translate(key, versionId, language, translation);
+      }
+    }
+    for (const pending of PENDING_TRANSLATIONS) translate(pending.key, byKey(pending.key), pending.language, pending.translation, false);
+    for (const [key, versionId] of released) {
+      if (key === SUSPICIOUS_KEY) continue;
+      for (const language of LANGUAGES) {
+        const variant = variantIn(store.getState(), versionId, language);
+        if (variant?.state !== "approved") continue;
+        tick(3);
+        const slide = await createSlide(store, author, versionId, variant.id);
+        store.transact((s) => approveMedia(s, language === "en" ? sme2 : bilingual, slide.id));
+      }
+    }
+    for (const [scenarioKey, title, taskId, linkedObjectKey, definition] of [
+      [LOTO_SCENARIO_KEY, "Restart request during lockout", "T-LOTO", LOTO_KEY, LOTO_SCENARIO],
+      [KYC_SCENARIO_KEY, "Names that do not match", "T-KYC-CHECK", KYC_KEY, KYC_SCENARIO],
+      [SPILL_SCENARIO_KEY, "Spill in a busy aisle", "T-SPILL", SPILL_KEY, SPILL_SCENARIO],
+    ] as const) {
+      tick(25);
+      store.transact((s) => createScenario(s, author, { scenarioKey, title, taskId, linkedObjectKey, definition }));
+    }
   } finally {
     setClockOffset(0);
   }
@@ -273,90 +369,131 @@ export async function seedDemo(store: Store, options: SeedOptions = {}): Promise
 
 type Ctx = { task_id?: string; situation_code?: string; asset_id?: string; equipment_model?: string; query?: string };
 
-/** Language mix of the synthetic workforce (share of workers whose app language it is). */
-const LANGUAGE_MIX: [Language, number][] = [
-  ["hi", 22],
-  ["kn", 18],
-  ["en", 16],
-  ["ta", 12],
-  ["te", 12],
-  ["mr", 9],
-  ["bn", 6],
-  ["ml", 5],
-];
+type Kind = "delivery" | "supervisor" | "technician" | "forklift" | "officer" | "manager" | "store";
+type Mix = [Language, number][];
 
-const FREE_TEXT: Partial<Record<Language, string[]>> = {
-  en: ["parcel packaging is torn", "parcel weight limit kg", "box is wet", "emergency stop check"],
-  hi: ["पैकेजिंग फटी", "पार्सल का वज़न"],
-  kn: ["ಪ್ಯಾಕೇಜಿಂಗ್ ಹಾನಿ", "ಪಾರ್ಸೆಲ್ ತೂಕ"],
-  ta: ["சேதமடைந்த பேக்கேஜிங்"],
-  te: ["దెబ్బతిన్న ప్యాకేజింగ్"],
-  mr: ["खराब पॅकेजिंग"],
-  bn: ["ক্ষতিগ্রস্ত প্যাকেজিং"],
-  ml: ["കേടായ പാക്കേജിംഗ്"],
+/** Share of each client's workforce using each app language (some not yet approved). */
+const LOGISTICS_MIX: Mix = [["hi", 22], ["kn", 18], ["en", 16], ["ta", 12], ["te", 12], ["mr", 9], ["bn", 6], ["ml", 5]];
+const KINDS: Record<Kind, { role: string; count: number; rate: number; mix: Mix }> = {
+  delivery: { role: "delivery_associate", count: 84, rate: 0.62, mix: LOGISTICS_MIX },
+  supervisor: { role: "hub_supervisor", count: 14, rate: 0.4, mix: LOGISTICS_MIX },
+  technician: { role: "maintenance_technician", count: 26, rate: 0.5, mix: [["ta", 40], ["kn", 20], ["ml", 12], ["en", 13], ["hi", 10], ["te", 5]] },
+  forklift: { role: "forklift_operator", count: 20, rate: 0.5, mix: [["ta", 48], ["hi", 24], ["en", 22], ["ml", 6]] },
+  officer: { role: "branch_officer", count: 30, rate: 0.45, mix: [["kn", 50], ["en", 30], ["hi", 15], ["te", 5]] },
+  manager: { role: "branch_manager", count: 8, rate: 0.3, mix: [["kn", 45], ["en", 55]] },
+  store: { role: "store_associate", count: 52, rate: 0.4, mix: [["mr", 45], ["hi", 33], ["en", 15], ["bn", 7]] },
+};
+
+const FREE_TEXT: Partial<Record<Kind, Partial<Record<Language, string[]>>>> = {
+  delivery: {
+    en: ["parcel packaging is torn", "parcel weight limit kg", "box is wet"],
+    hi: ["पैकेजिंग फटी", "पार्सल का वज़न"],
+    kn: ["ಪ್ಯಾಕೇಜಿಂಗ್ ಹಾನಿ", "ಪಾರ್ಸೆಲ್ ತೂಕ"],
+    ta: ["சேதமடைந்த பேக்கேஜிங்"],
+    te: ["దెబ్బతిన్న ప్యాకేజింగ్"],
+    mr: ["खराब पॅकेजिंग"],
+    bn: ["ক্ষতিগ্রস্ত প্যাকেজিং"],
+    ml: ["കേടായ പാക്കേജിംഗ്"],
+  },
+  officer: {
+    en: ["photocopy of identity document", "opening cash count differs"],
+    kn: ["ಫೋಟೋಕಾಪಿ ಸ್ವೀಕರಿಸಬೇಡಿ"],
+    hi: ["मूल दस्तावेज़ फ़ोटोकॉपी"],
+  },
+  store: {
+    en: ["wet floor sign spill", "extinguisher gauge red"],
+    hi: ["वेट-फ़्लोर साइन"],
+    mr: ["सांडलेले पुसा"],
+  },
 };
 
 interface Worker {
   principal: Principal;
   language: Language;
-  kind: "delivery" | "technician" | "supervisor";
+  kind: Kind;
 }
 
-/** A synthetic workforce: frontline identities that only exist as pseudonymous activity. */
+/** A synthetic workforce across Swift's four clients: pseudonymous identities only. */
 function workforce(random: () => number): Worker[] {
-  const make = (kind: Worker["kind"], workRole: string, count: number): Worker[] =>
-    Array.from({ length: count }, (_, i) => ({
+  return (Object.entries(KINDS) as [Kind, (typeof KINDS)[Kind]][]).flatMap(([kind, k]) =>
+    Array.from({ length: k.count }, (_, i) => ({
       kind,
-      language: pick(random, LANGUAGE_MIX.map(([l]) => l), LANGUAGE_MIX.map(([, w]) => w)),
-      principal: { userId: `w-${kind}-${String(i + 1).padStart(3, "0")}`, tenantId: TENANT, displayName: `${kind} ${i + 1}`, roles: ["worker"], workRole },
-    }));
-  return [...make("delivery", "delivery_associate", 84), ...make("technician", "maintenance_technician", 26), ...make("supervisor", "hub_supervisor", 14)];
-}
-
-function requestFor(kind: Worker["kind"], language: Language, random: () => number): Ctx {
-  if (kind === "technician") {
-    return pick<Ctx>(
-      random,
-      [
-        { task_id: "T-CONV-INSPECT", equipment_model: "CV-1000" },
-        { task_id: "T-CONV-INSPECT", asset_id: "EQ-1000-A" },
-        { task_id: "T-CONV-INSPECT", asset_id: "EQ-1000-B" },
-        { task_id: "T-CONV-INSPECT" },
-        { task_id: "T-CONV-INSPECT", asset_id: "EQ-2000-X" },
-      ],
-      [52, 20, 14, 9, 5],
-    );
-  }
-  if (kind === "supervisor") {
-    return pick<Ctx>(random, [{ task_id: "T-COD-REVIEW" }, { task_id: "T-PICKUP", situation_code: "ADDRESS_MISMATCH" }], [80, 20]);
-  }
-  const queries = FREE_TEXT[language] ?? FREE_TEXT.en ?? [];
-  const query = queries[Math.floor(random() * queries.length)] as string;
-  return pick<Ctx>(
-    random,
-    [
-      { task_id: "T-PICKUP" },
-      { task_id: "T-PICKUP", situation_code: "DAMAGED_PACKAGE" },
-      { task_id: "T-PICKUP", situation_code: "ADDRESS_MISMATCH" },
-      { task_id: "T-PICKUP", situation_code: "LEAKING_CONTENTS" },
-      { task_id: "T-RETURNS" },
-      { task_id: "T-COD-REVIEW" },
-      { query },
-    ],
-    [52, 19, 7, 3, 5, 2, 12],
+      language: pick(random, k.mix.map(([l]) => l), k.mix.map(([, w]) => w)),
+      principal: { userId: `w-${kind}-${String(i + 1).padStart(3, "0")}`, tenantId: TENANT, displayName: `${kind} ${i + 1}`, roles: ["worker"], workRole: k.role },
+    })),
   );
 }
+
+function requestFor(kind: Kind, language: Language, random: () => number): Ctx {
+  const queries = FREE_TEXT[kind]?.[language] ?? FREE_TEXT[kind]?.en ?? [];
+  const query = queries[Math.floor(random() * queries.length)] as string;
+  const options: Record<Kind, [Ctx, number][]> = {
+    technician: [
+      [{ task_id: "T-CONV-INSPECT", equipment_model: "CV-1000" }, 36],
+      [{ task_id: "T-CONV-INSPECT", asset_id: "EQ-1000-A" }, 14],
+      [{ task_id: "T-CONV-INSPECT", asset_id: "EQ-1000-B" }, 10],
+      [{ task_id: "T-CONV-INSPECT" }, 6],
+      [{ task_id: "T-CONV-INSPECT", asset_id: "EQ-2000-X" }, 4],
+      [{ task_id: "T-LOTO" }, 30],
+    ],
+    forklift: [
+      [{ task_id: "T-FORKLIFT-CHECK", asset_id: "FL-25-01" }, 45],
+      [{ task_id: "T-FORKLIFT-CHECK", asset_id: "FL-25-02" }, 35],
+      [{ task_id: "T-FORKLIFT-CHECK" }, 12],
+      [{ task_id: "T-LOTO" }, 8],
+    ],
+    supervisor: [
+      [{ task_id: "T-COD-REVIEW" }, 80],
+      [{ task_id: "T-PICKUP", situation_code: "ADDRESS_MISMATCH" }, 20],
+    ],
+    delivery: [
+      [{ task_id: "T-PICKUP" }, 52],
+      [{ task_id: "T-PICKUP", situation_code: "DAMAGED_PACKAGE" }, 19],
+      [{ task_id: "T-PICKUP", situation_code: "ADDRESS_MISMATCH" }, 7],
+      [{ task_id: "T-PICKUP", situation_code: "LEAKING_CONTENTS" }, 3],
+      [{ task_id: "T-RETURNS" }, 5],
+      [{ task_id: "T-COD-REVIEW" }, 2],
+      [{ query }, 12],
+    ],
+    officer: [
+      [{ task_id: "T-CASH-OPEN" }, 40],
+      [{ task_id: "T-KYC-CHECK" }, 34],
+      [{ task_id: "T-SUSPICIOUS-TXN" }, 10],
+      [{ query }, 16],
+    ],
+    manager: [
+      [{ task_id: "T-SUSPICIOUS-TXN" }, 70],
+      [{ task_id: "T-CASH-OPEN" }, 30],
+    ],
+    store: [
+      [{ task_id: "T-SPILL" }, 38],
+      [{ task_id: "T-FIRE-CHECK" }, 34],
+      [{ task_id: "T-CUSTOMER-INJURY" }, 16],
+      [{ query }, 12],
+    ],
+  };
+  const list = options[kind].filter(([ctx]) => !("query" in ctx) || ctx.query);
+  return pick<Ctx>(random, list.map(([c]) => c), list.map(([, w]) => w));
+}
+
+/** Practice volume per scenario per day, who practises, and the choice that meets every rule. */
+const PRACTICE: { key: string; kind: Kind; perDay: number; guided: [string, string[]]; independent: [string, string[]] }[] = [
+  { key: SCENARIO_KEY, kind: "delivery", perDay: 6, guided: ["B", ["A", "C"]], independent: ["Z", ["W", "Y", "X"]] },
+  { key: LOTO_SCENARIO_KEY, kind: "technician", perDay: 2, guided: ["B", ["A", "C"]], independent: ["X", ["Z", "Y", "W"]] },
+  { key: KYC_SCENARIO_KEY, kind: "officer", perDay: 2, guided: ["B", ["A", "C"]], independent: ["X", ["Y", "Z", "W"]] },
+  { key: SPILL_SCENARIO_KEY, kind: "store", perDay: 3, guided: ["B", ["A", "C"]], independent: ["X", ["W", "Z", "Y"]] },
+];
 
 export const ACTIVITY_DAYS = 90;
 
 /**
- * Ninety days of synthetic usage by a workforce of 124 frontline workers, produced by calling
+ * Ninety days of synthetic usage by 234 frontline workers across four clients, produced by calling
  * the real delivery, event and practice code paths with the clock set to each moment.
  */
 export function generateActivity(store: Store, seedValue = 42): void {
   const random = rng(seedValue);
   const workers = workforce(random);
-  const scenario = store.getState().scenarios.find((x) => x.scenarioKey === SCENARIO_KEY);
+  const scenarios = new Map(store.getState().scenarios.filter((x) => x.active).map((x) => [x.scenarioKey, x]));
   const today = new Date(nowMs());
   today.setUTCHours(0, 0, 0, 0);
   const at = (day: number) => today.getTime() - day * DAY + (2.5 + random() * 10) * 3600000; // 08:00–18:30 IST
@@ -367,7 +504,7 @@ export function generateActivity(store: Store, seedValue = 42): void {
         const growth = 0.7 + 0.4 * ((ACTIVITY_DAYS - day) / ACTIVITY_DAYS);
         const volume = (weekday === 0 ? 0.45 : weekday === 6 ? 0.75 : 1) * growth;
         for (const worker of workers) {
-          const rate = worker.kind === "delivery" ? 0.62 : worker.kind === "technician" ? 0.5 : 0.4;
+          const rate = KINDS[worker.kind].rate;
           let requests = 0;
           while (random() < rate * volume && requests < 3) requests += 1;
           for (let r = 0; r < requests; r++) {
@@ -406,25 +543,28 @@ export function generateActivity(store: Store, seedValue = 42): void {
             }
           }
         }
-        if (!scenario) continue;
         // Practice: guided sessions every day; independent checks become more accurate over time.
-        const learners = workers.filter((w) => w.kind === "delivery");
-        for (let i = 0; i < 6; i++) {
-          const learner = learners[Math.floor(random() * learners.length)] as Worker;
-          const when = at(day);
-          if (when > Date.now()) continue;
-          setClockOffset(when - Date.now());
-          const independent = i >= 4;
-          const skill = 0.45 + 0.4 * ((ACTIVITY_DAYS - day) / ACTIVITY_DAYS);
-          attempt(s, learner.principal, {
-            scenarioId: scenario.id,
-            variant: independent ? "independent" : "guided",
-            choiceId: independent
-              ? pick(random, ["Z", "W", "Y", "X"], [skill, (1 - skill) / 2, (1 - skill) / 3, (1 - skill) / 6])
-              : pick(random, ["B", "A", "C"], [skill + 0.1, 1 - skill, 0.1]),
-            hintsUsed: independent ? 0 : Math.floor(random() * 3),
-            language: learner.language,
-          });
+        for (const plan of PRACTICE) {
+          const scenario = scenarios.get(plan.key);
+          if (!scenario) continue;
+          const learners = workers.filter((w) => w.kind === plan.kind);
+          for (let i = 0; i < plan.perDay; i++) {
+            const learner = learners[Math.floor(random() * learners.length)] as Worker;
+            const when = at(day);
+            if (when > Date.now()) continue;
+            setClockOffset(when - Date.now());
+            const independent = i >= plan.perDay - Math.max(1, Math.round(plan.perDay / 3));
+            const skill = 0.45 + 0.4 * ((ACTIVITY_DAYS - day) / ACTIVITY_DAYS);
+            const [right, wrong] = independent ? plan.independent : plan.guided;
+            const choiceId = random() < skill + (independent ? 0 : 0.1) ? right : (wrong[Math.floor(random() * wrong.length)] as string);
+            attempt(s, learner.principal, {
+              scenarioId: scenario.id,
+              variant: independent ? "independent" : "guided",
+              choiceId,
+              hintsUsed: independent ? 0 : Math.floor(random() * 3),
+              language: learner.language,
+            });
+          }
         }
       }
     });

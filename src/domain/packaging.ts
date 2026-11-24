@@ -10,6 +10,7 @@ import { NotFound, nowIso, requireCap, type Principal } from "./core";
 import { C3ContentVersionReference, C4MediaReference, CONTRACT_VERSION } from "./contracts";
 import { effectiveRisk, getObject, sourceVariantOf, variantsOf } from "./governance";
 import { extensionOf } from "./ingestion";
+import { getClient, type Client } from "./clients";
 import { audit, type Store } from "./store";
 import type { DemoState, KnowledgePackageRecord, MediaAsset, ObjectVersion, PackageManifest } from "./types";
 
@@ -43,6 +44,7 @@ const PackageObject = z
       .array(z.object({ language: z.string(), language_version_id: z.string(), content_hash: z.string(), title: z.string(), blocks: z.array(ContentBlock).min(1) }).strict())
       .min(1),
     media: z.array(C4MediaReference),
+    course_modules: z.array(z.object({ module_id: z.string(), title: z.string() }).strict()),
   })
   .strict();
 
@@ -53,6 +55,9 @@ const Manifest = z
     contract_version: z.literal(CONTRACT_VERSION),
     package_version: z.number().int().min(1),
     tenant_id: z.string(),
+    client_id: z.string(),
+    client_name: z.string(),
+    programme_code: z.string(),
     generated_at: z.string(),
     generated_by: z.string(),
     distribution: z.literal("general"),
@@ -92,7 +97,7 @@ export const PACKAGE_SCHEMA_DOC = {
     "package.json": "{ manifest, objects[] } — validated against this format before export",
     "media/<media_id>.<ext>": "approved, non-stale media referenced by objects[].media[].rendition_uri",
   },
-  object_fields: ["reference (C3)", "object_key", "content_hash", "risk_class", "distribution_class = general", "publication_status = published", "escalation_route", "help_mappings[]", "variants[] (approved languages only)", "media[] (C4)"],
+  object_fields: ["reference (C3)", "object_key", "content_hash", "risk_class", "distribution_class = general", "publication_status = published", "escalation_route", "help_mappings[]", "variants[] (approved languages only)", "media[] (C4)", "course_modules[] (client e-learning modules that link to this object)"],
   manifest_fields: Object.keys(Manifest.shape),
 };
 
@@ -155,16 +160,38 @@ function jsonFragment(text: string): string {
   return JSON.stringify(text).slice(1, -1);
 }
 
-export async function exportPackage(store: Store, p: Principal): Promise<KnowledgePackageRecord> {
+/** File name a client's package downloads as. */
+export function packageFilename(record: Pick<KnowledgePackageRecord, "clientId" | "packageVersion">): string {
+  return `swift-knowledge-${record.clientId.replace(/^cl-/, "")}-v${record.packageVersion}.zip`;
+}
+
+export interface AssembledPackage {
+  client: Client;
+  nextVersion: number;
+  manifest: PackageManifest;
+  packageJson: string;
+  mediaFiles: { name: string; media: MediaAsset }[];
+}
+
+/**
+ * Build (without storing) the next Model A package for one client: only that client's approved
+ * general content, schema-validated and scanned for restricted or other-client text.
+ */
+export function assemblePackage(s: DemoState, p: Principal, clientId: string): AssembledPackage {
   requireCap(p, "package.export");
-  const s = store.getState();
+  const client = getClient(clientId);
+  if (!client) throw new NotFound(`Unknown client '${clientId}'`);
   const now = nowIso();
-  const previous = [...s.packages].sort((a, b) => b.packageVersion - a.packageVersion)[0];
+  const previous = s.packages.filter((x) => x.clientId === clientId).sort((a, b) => b.packageVersion - a.packageVersion)[0];
   const nextVersion = previous ? previous.packageVersion + 1 : 1;
   const objects: PackageObject[] = [];
   const mediaFiles: { name: string; media: MediaAsset }[] = [];
   const restrictedTexts: string[] = [];
-  const latest = latestReleased(s);
+  const ownKey = (objectId: string) => {
+    const key = getObject(s, objectId).objectKey.toLowerCase();
+    return client.documentPrefixes.some((prefix) => key.startsWith(prefix));
+  };
+  const latest = new Map([...latestReleased(s)].filter(([objectId]) => ownKey(objectId)));
   const included = new Set<string>();
 
   for (const [objectId, version] of latest) {
@@ -218,6 +245,9 @@ export async function exportPackage(store: Store, p: Principal): Promise<Knowled
       help_mappings: mappings,
       variants: approved,
       media: refs,
+      course_modules: client.programme.modules
+        .filter((m) => m.objectKeys.includes(getObject(s, objectId).objectKey))
+        .map((m) => ({ module_id: m.id, title: m.title.en })),
     });
     included.add(objectId);
   }
@@ -243,6 +273,9 @@ export async function exportPackage(store: Store, p: Principal): Promise<Knowled
     contract_version: CONTRACT_VERSION,
     package_version: nextVersion,
     tenant_id: p.tenantId,
+    client_id: client.id,
+    client_name: client.name,
+    programme_code: client.programme.code,
     generated_at: now,
     generated_by: p.displayName,
     distribution: "general",
@@ -270,14 +303,27 @@ export async function exportPackage(store: Store, p: Principal): Promise<Knowled
   const pkg = KnowledgePackageV01.parse({ manifest, objects });
   const packageJson = JSON.stringify(pkg, null, 2);
 
-  // Defence in depth: prove that no restricted text leaked into the export.
+  // Defence in depth: prove that no restricted text, and no other client's text, leaked in.
+  const versionById = new Map(s.versions.map((v) => [v.id, v]));
+  for (const variant of s.variants) {
+    const version = versionById.get(variant.versionId);
+    if (!version || (ownKey(version.objectId) && version.distributionClass === "general")) continue;
+    restrictedTexts.push(variant.title, ...variant.blocks.map((b) => b.text));
+  }
   const generalTexts = new Set(objects.flatMap((o) => o.variants.flatMap((v) => [v.title, ...v.blocks.map((b) => b.text)])));
   for (const text of restrictedTexts) {
     if (text && !generalTexts.has(text) && packageJson.includes(jsonFragment(text))) {
-      throw new Error("Restricted text detected in package export; export aborted");
+      throw new Error("Restricted or other-client text detected in package export; export aborted");
     }
   }
 
+  return { client, nextVersion, manifest, packageJson, mediaFiles };
+}
+
+/** Export and store the next Model A package for one client. */
+export async function exportPackage(store: Store, p: Principal, clientId: string): Promise<KnowledgePackageRecord> {
+  const { client, nextVersion, manifest, packageJson, mediaFiles } = assemblePackage(store.getState(), p, clientId);
+  const now = manifest.generated_at;
   const zip = new JSZip();
   zip.file("package.json", packageJson);
   zip.file("schema.json", JSON.stringify(PACKAGE_SCHEMA_DOC, null, 2));
@@ -287,18 +333,19 @@ export async function exportPackage(store: Store, p: Principal): Promise<Knowled
 
   return store.transact((draft) => {
     const record: KnowledgePackageRecord = {
-      id: `pkg-${nextVersion}-${sha256.slice(0, 8)}`,
+      id: `pkg-${client.id}-${nextVersion}-${sha256.slice(0, 8)}`,
+      clientId: client.id,
       packageVersion: nextVersion,
       generatedAt: now,
       generatedBy: p.userId,
       manifest,
       sha256,
       fileKey: key,
-      objectCount: objects.length,
+      objectCount: manifest.object_count,
     };
-    if (draft.packages.some((x) => x.packageVersion === nextVersion)) throw new Error("Another export finished first; export again");
+    if (draft.packages.some((x) => x.clientId === client.id && x.packageVersion === nextVersion)) throw new Error("Another export finished first; export again");
     draft.packages.push(record);
-    audit(draft, p, "package.exported", "package", record.id, { package_version: nextVersion, objects: objects.length, withdrawn: withdrawn.length, sha256 });
+    audit(draft, p, "package.exported", "package", record.id, { client: client.name, package_version: nextVersion, objects: manifest.object_count, withdrawn: manifest.withdrawn.length, sha256 });
     return record;
   });
 }

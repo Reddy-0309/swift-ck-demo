@@ -4,7 +4,9 @@ import { store, useEngine } from "../../app/engine";
 import { useAction } from "../../app/useAction";
 import { variantIn } from "../../domain/governance";
 import { attempt, learnerView, type AttemptResult, type VariantName } from "../../domain/practice";
-import type { Language, Scenario } from "../../domain/types";
+import { clientOfScenario } from "../../domain/clients";
+import { clientOf } from "../../app/people";
+import { LANGUAGE_NAMES, type Language, type Scenario } from "../../domain/types";
 import { useField } from "../../layouts/FieldLayout";
 import { Icon } from "../../ui/icons";
 import { Procedure } from "../../ui/Procedure";
@@ -77,7 +79,17 @@ function Runner({ scenario, mode }: { scenario: Scenario; mode: VariantName }) {
 
   return (
     <div className="stack">
-      <p style={{ fontSize: 16 }}>{view.situation}</p>
+      {view.language !== language && (
+        <div className="notice">
+          <Icon name="globe" size={16} />
+          <div>
+            {t.notInLanguage} {LANGUAGE_NAMES[view.language].native}
+          </div>
+        </div>
+      )}
+      <p style={{ fontSize: 16 }} lang={view.language}>
+        {view.situation}
+      </p>
       <p className="question" style={{ margin: 0 }}>
         {view.prompt}
       </p>
@@ -113,10 +125,12 @@ function Runner({ scenario, mode }: { scenario: Scenario; mode: VariantName }) {
 }
 
 export default function FieldPractice() {
-  const { state } = useEngine();
+  const { state, user } = useEngine();
   const { t, language } = useField();
   const [params, setParams] = useSearchParams();
-  const scenarios = state.scenarios.filter((s) => s.active);
+  const client = clientOf(user);
+  // Practice from the worker's own client programme only.
+  const scenarios = state.scenarios.filter((s) => s.active && clientOfScenario(s)?.id === client?.id);
   const selected = scenarios.find((s) => s.id === params.get("scenario"));
   const mode = params.get("mode") === "independent" ? "independent" : "guided";
 
@@ -142,6 +156,7 @@ export default function FieldPractice() {
       <p className="muted" style={{ margin: "4px 0 20px" }}>
         {t.practiceIntro}
       </p>
+      {scenarios.length === 0 && <p className="muted">{t.noTasks}</p>}
       {scenarios.map((s) => (
         <div key={s.id} className="stack-sm" style={{ marginBottom: 20 }}>
           <h2>{scenarioTitle(s, language)}</h2>

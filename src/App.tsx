@@ -10,6 +10,10 @@ import { SignInPage } from "./pages/SignIn";
 const FieldHome = lazy(() => import("./pages/field/FieldHome"));
 const FieldGuide = lazy(() => import("./pages/field/FieldGuide"));
 const FieldPractice = lazy(() => import("./pages/field/FieldPractice"));
+const FieldCourse = lazy(() => import("./pages/field/FieldCourse"));
+const Clients = lazy(() => import("./pages/console/Clients"));
+const ClientDetail = lazy(() => import("./pages/console/ClientDetail"));
+const Checklist = lazy(() => import("./pages/console/Checklist"));
 const Home = lazy(() => import("./pages/console/Home"));
 const KnowledgeList = lazy(() => import("./pages/console/KnowledgeList"));
 const KnowledgeDetail = lazy(() => import("./pages/console/knowledge/KnowledgeDetail"));
@@ -42,6 +46,7 @@ export function App() {
         <Route index element={<FieldHome />} />
         <Route path="guide" element={<FieldGuide />} />
         <Route path="practice" element={<FieldPractice />} />
+        <Route path="course" element={<FieldCourse />} />
       </Route>
       <Route
         element={
@@ -51,6 +56,9 @@ export function App() {
         }
       >
         <Route index element={<Home />} />
+        <Route path="clients" element={<Clients />} />
+        <Route path="clients/:id" element={<ClientDetail />} />
+        <Route path="checklist" element={<Checklist />} />
         <Route path="knowledge" element={<KnowledgeList />} />
         <Route path="knowledge/:id" element={<KnowledgeDetail />} />
         <Route path="sources" element={<Sources />} />

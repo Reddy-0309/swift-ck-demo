@@ -1,7 +1,7 @@
 import { downloadStored, useStoredFileUrl } from "../../app/files";
 import type { C2KnowledgeResponse, MediaRef } from "../../domain/contracts";
 import { ANSWER_TEXT, FIELD_LABELS, WORKER_TEXT } from "../../domain/labels";
-import type { DemoState, Language, MediaAsset } from "../../domain/types";
+import { LANGUAGE_NAMES, type DemoState, type Language, type MediaAsset } from "../../domain/types";
 import { Icon } from "../../ui/icons";
 import { Procedure } from "../../ui/Procedure";
 import { RiskPill, formatDate } from "../../ui/kit";
@@ -38,8 +38,23 @@ function FieldMedia({ asset, refInfo, language, onMedia }: { asset: MediaAsset; 
 }
 
 /** The worker's answer: approved text verbatim with its provenance — or a clear non-answer. */
-export function FieldAnswer({ response, language, state, onMedia }: { response: C2KnowledgeResponse; language: Language; state: DemoState; onMedia: MediaEvent }) {
+export function FieldAnswer({
+  response,
+  language,
+  state,
+  onMedia,
+  alternatives = [],
+  onLanguage,
+}: {
+  response: C2KnowledgeResponse;
+  language: Language;
+  state: DemoState;
+  onMedia: MediaEvent;
+  alternatives?: Language[];
+  onLanguage?: (l: Language) => void;
+}) {
   const a = ANSWER_TEXT[language];
+  const t = WORKER_TEXT[language];
   if (response.outcome !== "answer") {
     const heading = response.outcome === "need_context" ? a.needContext : response.outcome === "not_permitted" ? a.notPermitted : a.noAnswer;
     return (
@@ -50,6 +65,18 @@ export function FieldAnswer({ response, language, state, onMedia }: { response: 
           <p style={{ marginTop: 8 }}>
             {a.pleaseProvide}: <strong>{response.required_context.map((f) => FIELD_LABELS[language][f] ?? f).join(", ")}</strong>
           </p>
+        )}
+        {alternatives.length > 0 && onLanguage && (
+          <div className="alt-langs">
+            <p>{t.showIn}:</p>
+            <div className="chips">
+              {alternatives.map((l) => (
+                <button key={l} type="button" className="chip" lang={l} onClick={() => onLanguage(l)}>
+                  {LANGUAGE_NAMES[l].native}
+                </button>
+              ))}
+            </div>
+          </div>
         )}
       </section>
     );

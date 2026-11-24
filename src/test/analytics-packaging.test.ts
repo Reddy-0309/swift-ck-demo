@@ -8,7 +8,9 @@ import { getObject, withdrawVersion } from "../domain/governance";
 import { exportPackage, validatePackageBytes } from "../domain/packaging";
 import { pseudonym } from "../domain/core";
 import { LANGUAGES } from "../domain/types";
-import { COD_KEY, DAMAGED_KEY } from "../seed/translations";
+import { CLIENTS } from "../domain/clients";
+import { CONVEYOR_KEY, DAMAGED_KEY, PICKUP_KEY } from "../seed/translations";
+import { FORKLIFT_KEY, LOTO_KEY, SUSPICIOUS_KEY } from "../seed/clientContent";
 
 describe("analytics", () => {
   it("reconciles every total with the raw events and suppresses small cells", async () => {
@@ -23,8 +25,23 @@ describe("analytics", () => {
       for (const r of i.rows) if (!r.suppressed) expect(r.denominator ?? r.value).toBeGreaterThanOrEqual(MIN_CELL_SIZE);
     }
     const effort = reviewEffort(store.getState());
-    expect(effort.summary.objectsReviewed).toBe(4);
-    expect(effort.summary.translationsReviewed).toBe(21);
+    expect(effort.summary.objectsReviewed).toBe(11);
+    expect(effort.summary.translationsReviewed).toBe(34);
+  });
+
+  it("reconciles per client, and the clients add up to the whole", async () => {
+    const store = await seededStore();
+    const s = store.getState();
+    const all = await dashboard(s);
+    const total = (d: Awaited<ReturnType<typeof dashboard>>) => d.indicators.find((i) => i.id === "retrieval_outcomes")!.total;
+    let sum = 0;
+    for (const client of CLIENTS) {
+      const d = await dashboard(s, undefined, client.id);
+      expect(d.reconciliation.allMatch).toBe(true);
+      expect(total(d)).toBeGreaterThan(0);
+      sum += total(d);
+    }
+    expect(sum).toBe(total(all));
   });
 
   it("accepts client events once and refuses spoofed or system events", async () => {
@@ -55,21 +72,31 @@ describe("Model A package", () => {
   it("exports general approved knowledge only, validates, and lists withdrawals next time", async () => {
     const store = await seededStore();
     const admin = as(store, "admin");
-    const first = await exportPackage(store, admin);
-    expect(first.manifest.object_count).toBe(3);
+    const first = await exportPackage(store, admin, "cl-logistics");
+    expect(first.manifest.client_id).toBe("cl-logistics");
+    expect(first.manifest.objects.map((o) => o.object_key).sort()).toEqual([DAMAGED_KEY, PICKUP_KEY].sort());
     expect(first.manifest.languages).toEqual([...LANGUAGES].sort());
-    expect(first.manifest.objects.map((o) => o.object_key)).not.toContain(COD_KEY);
     const bytes = store.getFile(first.fileKey);
     const pkg = await validatePackageBytes(bytes);
     expect(pkg.manifest.runtime_requirements).toEqual({ generative_ai: false, network_service: false, telemetry: false });
     const json = await (await JSZip.loadAsync(bytes)).file("package.json")!.async("string");
     expect(json).not.toContain("settlement");
-    await expect(exportPackage(store, as(store, "arjun.rider"))).rejects.toThrow(Forbidden);
+    expect(json).not.toContain("conveyor");
+    expect(JSON.parse(json).objects.find((o: { object_key: string }) => o.object_key === DAMAGED_KEY).course_modules).toEqual([{ module_id: "SL-M2", title: "Exceptions at pickup" }]);
+    await expect(exportPackage(store, as(store, "arjun.rider"), "cl-logistics")).rejects.toThrow(Forbidden);
+
+    // Another client's package is numbered separately and holds only its own content.
+    const plant = await exportPackage(store, admin, "cl-manufacturing");
+    expect(plant.packageVersion).toBe(1);
+    expect(plant.manifest.objects.map((o) => o.object_key).sort()).toEqual([CONVEYOR_KEY, FORKLIFT_KEY, LOTO_KEY].sort());
+    const bank = await exportPackage(store, admin, "cl-bank");
+    expect(bank.manifest.objects.map((o) => o.object_key)).not.toContain(SUSPICIOUS_KEY);
+    expect(bank.manifest.languages).toEqual(["en", "hi", "kn"]);
 
     const s = store.getState();
     const damaged = s.versions.find((v) => v.state === "published" && getObject(s, v.objectId).objectKey === DAMAGED_KEY)!;
     store.transact((x) => withdrawVersion(x, as(store, "vikram.sme"), damaged.id, "retired"));
-    const second = await exportPackage(store, admin);
+    const second = await exportPackage(store, admin, "cl-logistics");
     expect(second.packageVersion).toBe(2);
     expect(second.manifest.withdrawn).toEqual([expect.objectContaining({ object_key: DAMAGED_KEY, status: "withdrawn", last_packaged_version: 1 })]);
   });

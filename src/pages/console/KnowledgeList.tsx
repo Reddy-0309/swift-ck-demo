@@ -1,10 +1,11 @@
 import { useDeferredValue, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { CLIENTS, clientForKey } from "../../domain/clients";
 import { useEngine } from "../../app/engine";
 import { ROLE_LABELS } from "../../app/people";
 import { currentVersions, type VersionSummary } from "../../app/selectors";
 import { Coverage } from "../../ui/Coverage";
-import { Button, Empty, PageHeader, Panel, RiskPill, SearchInput, Segmented, StatusPill, timeAgo, usePaged } from "../../ui/kit";
+import { Button, ClientSelect, Empty, PageHeader, Panel, RiskPill, SearchInput, Segmented, StatusPill, timeAgo, usePaged } from "../../ui/kit";
 
 type Filter = "all" | "live" | "progress" | "attention" | "retired";
 const FILTERS: { id: Filter; label: string }[] = [
@@ -26,12 +27,17 @@ function matches(v: VersionSummary, f: Filter): boolean {
 export default function KnowledgeList() {
   const { state, can } = useEngine();
   const navigate = useNavigate();
+  const [params, setParams] = useSearchParams();
+  const client = CLIENTS.some((c) => c.id === params.get("client")) ? (params.get("client") as string) : "";
   const [filter, setFilter] = useState<Filter>("all");
   const [search, setSearch] = useState("");
   const term = useDeferredValue(search.trim().toLowerCase());
   const rows = useMemo(
-    () => currentVersions(state).filter((v) => matches(v, filter) && (!term || v.title.toLowerCase().includes(term) || v.objectKey.includes(term))),
-    [state, filter, term],
+    () =>
+      currentVersions(state).filter(
+        (v) => matches(v, filter) && (!client || clientForKey(v.objectKey)?.id === client) && (!term || v.title.toLowerCase().includes(term) || v.objectKey.includes(term)),
+      ),
+    [state, filter, term, client],
   );
   const { rows: page, pager, reset } = usePaged(rows);
 
@@ -39,7 +45,7 @@ export default function KnowledgeList() {
     <div className="page">
       <PageHeader
         title="Knowledge"
-        subtitle="Every procedure workers can be given, with its status, risk and languages."
+        subtitle="Every on-the-job guide Swift maintains for its clients, with its status, risk and languages."
         actions={can("source.upload") && <Button icon="upload" onClick={() => navigate("/sources")}>Upload SOP</Button>}
       />
       <Panel flush>
@@ -51,6 +57,13 @@ export default function KnowledgeList() {
               reset();
             }}
             placeholder="Search procedures"
+          />
+          <ClientSelect
+            value={client}
+            onChange={(id) => {
+              setParams(id ? { client: id } : {}, { replace: true });
+              reset();
+            }}
           />
           <span className="spacer" />
           <Segmented
@@ -71,6 +84,7 @@ export default function KnowledgeList() {
               <thead>
                 <tr>
                   <th>Procedure</th>
+                  <th>Client</th>
                   <th>Status</th>
                   <th>Risk</th>
                   <th>Languages</th>
@@ -90,6 +104,10 @@ export default function KnowledgeList() {
                         {v.distributionClass === "restricted" ? " · restricted" : ""}
                         {v.uncertainBlocks > 0 ? ` · ${v.uncertainBlocks} line${v.uncertainBlocks === 1 ? "" : "s"} to review` : ""}
                       </span>
+                    </td>
+                    <td className="small nowrap">
+                      <span className="client-dot" style={{ background: clientForKey(v.objectKey)?.colour ?? "#999" }} />
+                      {clientForKey(v.objectKey)?.short ?? "Unassigned"}
                     </td>
                     <td>
                       <StatusPill state={v.state} />

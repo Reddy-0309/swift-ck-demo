@@ -3,10 +3,11 @@ import { downloadStored } from "../../app/files";
 import { store, useEngine, usePrincipal } from "../../app/engine";
 import { userName } from "../../app/selectors";
 import { useAction } from "../../app/useAction";
-import { exportPackage } from "../../domain/packaging";
+import { CLIENTS, DELIVERY_LABEL, getClient } from "../../domain/clients";
+import { exportPackage, packageFilename } from "../../domain/packaging";
 import { LANGUAGE_NAMES, isLanguage, type KnowledgePackageRecord } from "../../domain/types";
 import { Icon } from "../../ui/icons";
-import { Button, Empty, ErrorNotice, Notice, PageHeader, Panel, Pill, formatDate, useToast } from "../../ui/kit";
+import { Button, ClientSelect, Empty, ErrorNotice, Notice, PageHeader, Panel, Pill, formatDate, useToast } from "../../ui/kit";
 
 function PackageRow({ p, latest }: { p: KnowledgePackageRecord; latest: boolean }) {
   const { state } = useEngine();
@@ -16,7 +17,7 @@ function PackageRow({ p, latest }: { p: KnowledgePackageRecord; latest: boolean 
     <Panel
       title={
         <span className="row">
-          Package {p.packageVersion}
+          {getClient(p.clientId)?.short ?? p.clientId} · package {p.packageVersion}
           {latest && <Pill tone="green">Latest</Pill>}
         </span>
       }
@@ -25,14 +26,14 @@ function PackageRow({ p, latest }: { p: KnowledgePackageRecord; latest: boolean 
           <Button variant="ghost" size="sm" onClick={() => setOpen((o) => !o)}>
             {open ? "Hide details" : "Details"}
           </Button>
-          <Button variant="secondary" size="sm" icon="download" onClick={() => downloadStored(p.fileKey, `swift-knowledge-package-v${p.packageVersion}.zip`, "application/zip")}>
+          <Button variant="secondary" size="sm" icon="download" onClick={() => downloadStored(p.fileKey, packageFilename(p), "application/zip")}>
             Download
           </Button>
         </div>
       }
     >
       <p className="muted">
-        {m.object_count} procedures in {m.languages.length} languages · {m.withdrawn.length} to remove · exported {formatDate(p.generatedAt)} by {userName(state, p.generatedBy)}
+        Programme {m.programme_code} · {m.object_count} guides in {m.languages.length} languages · {m.withdrawn.length} to remove · exported {formatDate(p.generatedAt)} by {userName(state, p.generatedBy)}
       </p>
       {open && (
         <div className="grid-2" style={{ marginTop: 16 }}>
@@ -86,28 +87,57 @@ export default function Packages() {
   const principal = usePrincipal();
   const toast = useToast();
   const action = useAction<KnowledgePackageRecord>();
+  const [client, setClient] = useState("");
+  const [target, setTarget] = useState(CLIENTS[0]?.id ?? "");
   if (!can("package.export")) return <div className="page"><Notice tone="warn">Your role cannot export packages.</Notice></div>;
-  const packages = [...state.packages].sort((a, b) => b.packageVersion - a.packageVersion);
+  const packages = state.packages.filter((p) => !client || p.clientId === client).sort((a, b) => b.generatedAt.localeCompare(a.generatedAt));
+  const latestIds = new Set(CLIENTS.map((c) => state.packages.filter((p) => p.clientId === c.id).sort((a, b) => b.packageVersion - a.packageVersion)[0]?.id));
+  const targetClient = getClient(target);
   return (
     <div className="page">
       <PageHeader
         title="Packages"
-        subtitle="A versioned bundle of approved, general procedures that another app can build in and use offline."
-        actions={
-          <Button icon="package" busy={action.busy} onClick={() => void action.run(() => exportPackage(store, principal), (p) => toast(`Package ${p.packageVersion} exported`))}>
-            Export package
-          </Button>
-        }
+        subtitle="Each client gets a versioned bundle of its own approved guides, ready to install next to its e-learning modules. It works offline and needs no AI."
       />
       <div className="stack">
-        <Notice>Restricted procedures are never included. A package already shipped cannot be recalled, so each new package lists what the host app must remove.</Notice>
-        <ErrorNotice error={action.error} />
+        <Panel title="Export a package">
+          <div className="export-row">
+            <label className="field" style={{ margin: 0 }}>
+              <span className="label">Client</span>
+              <select value={target} onChange={(e) => setTarget(e.target.value)}>
+                {CLIENTS.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            {targetClient && (
+              <p className="muted small" style={{ flex: 1, margin: 0 }}>
+                {DELIVERY_LABEL[targetClient.deliveryModel]}. {targetClient.delivery}
+              </p>
+            )}
+            <Button
+              icon="package"
+              busy={action.busy}
+              onClick={() => void action.run(() => exportPackage(store, principal, target), (p) => toast(`${getClient(p.clientId)?.short ?? ""} package ${p.packageVersion} exported`))}
+            >
+              Export package
+            </Button>
+          </div>
+          <ErrorNotice error={action.error} />
+        </Panel>
+        <Notice>Only general guides are included. Restricted guides stay behind the client's own sign-in, and no client's content ever goes into another client's package. A shipped package cannot be recalled, so each new one lists what the client's app must remove.</Notice>
+        <div className="row" style={{ justifyContent: "space-between" }}>
+          <h2 style={{ margin: 0 }}>Exported packages</h2>
+          <ClientSelect value={client} onChange={setClient} />
+        </div>
         {packages.length === 0 ? (
           <Panel>
-            <Empty title="No packages yet">Export one to hand approved knowledge to a host app.</Empty>
+            <Empty title="No packages yet">Choose a client above and export its first package.</Empty>
           </Panel>
         ) : (
-          packages.map((p, i) => <PackageRow key={p.id} p={p} latest={i === 0} />)
+          packages.map((p) => <PackageRow key={p.id} p={p} latest={latestIds.has(p.id)} />)
         )}
       </div>
     </div>

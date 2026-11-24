@@ -4,8 +4,8 @@
 
 import type { Language, ScenarioDefinition, ScenarioText } from "../domain/types";
 
-type C = [label: string, consequence: string, feedback: string];
-interface Compact {
+export type C = [label: string, consequence: string, feedback: string];
+export interface Compact {
   situation: string;
   rules: [string, string, string];
   guidedPrompt: string;
@@ -163,7 +163,8 @@ const TEXT: Record<Language, Compact> = {
 };
 
 const RULES = ["R1", "R2", "R3"] as const;
-const results = (r1: boolean, r2: boolean, r3: boolean) => ({ R1: r1, R2: r2, R3: r3 });
+type R = [boolean, boolean, boolean];
+const results = ([r1, r2, r3]: R) => ({ R1: r1, R2: r2, R3: r3 });
 
 function expand(c: Compact): ScenarioText {
   const choices = <K extends string>(m: Record<K, C>) =>
@@ -176,20 +177,24 @@ function expand(c: Compact): ScenarioText {
   };
 }
 
+/** A three-rule scenario with guided choices A–C and independent choices W–Z. */
+export function buildDefinition(
+  text: Partial<Record<Language, Compact>> & { en: Compact },
+  guided: Record<"A" | "B" | "C", R>,
+  independent: Record<"W" | "X" | "Y" | "Z", R>,
+): ScenarioDefinition {
+  return {
+    rules: [...RULES],
+    guided: (Object.entries(guided) as [string, R][]).map(([id, r]) => ({ id, ruleResults: results(r) })),
+    independent: (Object.entries(independent) as [string, R][]).map(([id, r]) => ({ id, ruleResults: results(r) })),
+    text: Object.fromEntries(Object.entries(text).map(([lang, c]) => [lang, expand(c as Compact)])) as ScenarioDefinition["text"],
+  };
+}
+
 export const SCENARIO_KEY = "damaged-package-pickup";
 
-export const SCENARIO_DEFINITION: ScenarioDefinition = {
-  rules: [...RULES],
-  guided: [
-    { id: "A", ruleResults: results(false, false, true) },
-    { id: "B", ruleResults: results(true, true, true) },
-    { id: "C", ruleResults: results(false, false, false) },
-  ],
-  independent: [
-    { id: "W", ruleResults: results(true, false, true) },
-    { id: "X", ruleResults: results(false, false, false) },
-    { id: "Y", ruleResults: results(false, false, true) },
-    { id: "Z", ruleResults: results(true, true, true) },
-  ],
-  text: Object.fromEntries(Object.entries(TEXT).map(([lang, c]) => [lang, expand(c)])) as ScenarioDefinition["text"],
-};
+export const SCENARIO_DEFINITION: ScenarioDefinition = buildDefinition(
+  TEXT,
+  { A: [false, false, true], B: [true, true, true], C: [false, false, false] },
+  { W: [true, false, true], X: [false, false, false], Y: [false, false, true], Z: [true, true, true] },
+);

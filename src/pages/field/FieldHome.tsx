@@ -2,20 +2,21 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useEngine } from "../../app/engine";
-import { personName } from "../../app/people";
+import { clientOf, personName } from "../../app/people";
 import { tasksForRole } from "../../app/selectors";
 import { CONTEXT_LABELS } from "../../domain/labels";
 import { useField } from "../../layouts/FieldLayout";
 import { Icon, type IconName } from "../../ui/icons";
-
-const TASK_ICON: Record<string, IconName> = { "T-PICKUP": "truck", "T-CONV-INSPECT": "cog", "T-COD-REVIEW": "cash", "T-RETURNS": "returns" };
 
 export default function FieldHome() {
   const { state, user } = useEngine();
   const { t, language } = useField();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const tasks = tasksForRole(state, user?.workRole ?? null);
+  const client = clientOf(user);
+  const icons = new Map((client?.tasks ?? []).map((x) => [x.code, x.icon as IconName]));
+  const order = (client?.tasks ?? []).map((x) => x.code);
+  const tasks = tasksForRole(state, user?.workRole ?? null).sort((a, b) => order.indexOf(a.code) - order.indexOf(b.code));
 
   function search(event: FormEvent) {
     event.preventDefault();
@@ -39,7 +40,7 @@ export default function FieldHome() {
         {tasks.map((task) => (
           <Link key={task.code} className="tile" to={`/field/guide?task=${encodeURIComponent(task.code)}`}>
             <span className="tile-icon">
-              <Icon name={TASK_ICON[task.code] ?? "book"} size={22} />
+              <Icon name={icons.get(task.code) ?? "book"} size={22} />
             </span>
             <strong>{CONTEXT_LABELS[language][task.code] ?? task.code}</strong>
             <Icon name="chevronRight" />
