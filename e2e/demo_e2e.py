@@ -28,6 +28,7 @@ LANG_OPTION = {"en": "English", "kn": "Kannada", "ta": "Tamil", "te": "Telugu", 
 
 
 def option_label(page, select, startswith):
+    expect(select.locator("option").first).to_be_attached()  # wait until the screen has rendered
     for opt in select.locator("option").all():
         text = opt.inner_text()
         if text.startswith(startswith):
