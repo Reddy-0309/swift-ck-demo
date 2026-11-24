@@ -226,25 +226,39 @@ export const FIELD_LABELS: Record<Language, Record<string, string>> = {
   bn: { asset_id: "অ্যাসেট বা যন্ত্রের মডেল", situation_code: "পরিস্থিতি", screen_id: "স্ক্রিন", workflow_state: "কাজের ধাপ", task_id: "কাজ", query: "আরও নির্দিষ্ট প্রশ্ন" },
 };
 
-/** Worker-facing screen text (Ask and Practice). */
+/** Names of tasks, situations and equipment as workers see them. Codes stay unchanged. */
+export const CONTEXT_LABELS: Record<Language, Record<string, string>> = {
+  en: { "T-PICKUP": "Parcel pickup", "T-COD-REVIEW": "Cash-on-delivery review", "T-CONV-INSPECT": "Conveyor daily inspection", "T-RETURNS": "Customer return collection", DAMAGED_PACKAGE: "Damaged packaging", ADDRESS_MISMATCH: "Address mismatch", LEAKING_CONTENTS: "Leaking contents", "EQ-1000-A": "Conveyor line A", "EQ-1000-B": "Conveyor line B", "EQ-2000-X": "Sorter X", "CV-1000": "Conveyor model CV-1000" },
+  kn: { "T-PICKUP": "ಪಾರ್ಸೆಲ್ ಪಿಕಪ್", "T-COD-REVIEW": "ಕ್ಯಾಶ್-ಆನ್-ಡೆಲಿವರಿ ಪರಿಶೀಲನೆ", "T-CONV-INSPECT": "ಕನ್ವೇಯರ್ ದೈನಂದಿನ ತಪಾಸಣೆ", "T-RETURNS": "ಗ್ರಾಹಕ ರಿಟರ್ನ್ ಸಂಗ್ರಹ", DAMAGED_PACKAGE: "ಹಾನಿಗೊಳಗಾದ ಪ್ಯಾಕೇಜಿಂಗ್", ADDRESS_MISMATCH: "ವಿಳಾಸ ಹೊಂದಿಕೆಯಾಗುತ್ತಿಲ್ಲ", LEAKING_CONTENTS: "ಸೋರುತ್ತಿರುವ ವಸ್ತುಗಳು", "EQ-1000-A": "ಕನ್ವೇಯರ್ ಲೈನ್ A", "EQ-1000-B": "ಕನ್ವೇಯರ್ ಲೈನ್ B", "EQ-2000-X": "ಸಾರ್ಟರ್ X", "CV-1000": "ಕನ್ವೇಯರ್ ಮಾದರಿ CV-1000" },
+  ta: { "T-PICKUP": "பார்சல் பிக்அப்", "T-COD-REVIEW": "கேஷ்-ஆன்-டெலிவரி சரிபார்ப்பு", "T-CONV-INSPECT": "கன்வேயர் தினசரி ஆய்வு", "T-RETURNS": "வாடிக்கையாளர் ரிட்டர்ன் சேகரிப்பு", DAMAGED_PACKAGE: "சேதமடைந்த பேக்கேஜிங்", ADDRESS_MISMATCH: "முகவரி பொருந்தவில்லை", LEAKING_CONTENTS: "கசியும் பொருட்கள்", "EQ-1000-A": "கன்வேயர் லைன் A", "EQ-1000-B": "கன்வேயர் லைன் B", "EQ-2000-X": "சார்ட்டர் X", "CV-1000": "கன்வேயர் மாடல் CV-1000" },
+  te: { "T-PICKUP": "పార్సెల్ పికప్", "T-COD-REVIEW": "క్యాష్-ఆన్-డెలివరీ సమీక్ష", "T-CONV-INSPECT": "కన్వేయర్ రోజువారీ తనిఖీ", "T-RETURNS": "కస్టమర్ రిటర్న్ సేకరణ", DAMAGED_PACKAGE: "దెబ్బతిన్న ప్యాకేజింగ్", ADDRESS_MISMATCH: "చిరునామా సరిపోలడం లేదు", LEAKING_CONTENTS: "కారుతున్న వస్తువులు", "EQ-1000-A": "కన్వేయర్ లైన్ A", "EQ-1000-B": "కన్వేయర్ లైన్ B", "EQ-2000-X": "సార్టర్ X", "CV-1000": "కన్వేయర్ మోడల్ CV-1000" },
+  hi: { "T-PICKUP": "पार्सल पिकअप", "T-COD-REVIEW": "कैश-ऑन-डिलीवरी समीक्षा", "T-CONV-INSPECT": "कन्वेयर दैनिक निरीक्षण", "T-RETURNS": "ग्राहक रिटर्न संग्रह", DAMAGED_PACKAGE: "क्षतिग्रस्त पैकेजिंग", ADDRESS_MISMATCH: "पता मेल नहीं खाता", LEAKING_CONTENTS: "रिसता हुआ सामान", "EQ-1000-A": "कन्वेयर लाइन A", "EQ-1000-B": "कन्वेयर लाइन B", "EQ-2000-X": "सॉर्टर X", "CV-1000": "कन्वेयर मॉडल CV-1000" },
+  ml: { "T-PICKUP": "പാഴ്സൽ പിക്കപ്പ്", "T-COD-REVIEW": "ക്യാഷ്-ഓൺ-ഡെലിവറി പരിശോധന", "T-CONV-INSPECT": "കൺവെയർ ദൈനംദിന പരിശോധന", "T-RETURNS": "ഉപഭോക്തൃ റിട്ടേൺ ശേഖരണം", DAMAGED_PACKAGE: "കേടായ പാക്കേജിംഗ്", ADDRESS_MISMATCH: "വിലാസം പൊരുത്തപ്പെടുന്നില്ല", LEAKING_CONTENTS: "ചോരുന്ന വസ്തുക്കൾ", "EQ-1000-A": "കൺവെയർ ലൈൻ A", "EQ-1000-B": "കൺവെയർ ലൈൻ B", "EQ-2000-X": "സോർട്ടർ X", "CV-1000": "കൺവെയർ മോഡൽ CV-1000" },
+  mr: { "T-PICKUP": "पार्सल पिकअप", "T-COD-REVIEW": "कॅश-ऑन-डिलिव्हरी पुनरावलोकन", "T-CONV-INSPECT": "कन्व्हेयर दैनंदिन तपासणी", "T-RETURNS": "ग्राहक रिटर्न संकलन", DAMAGED_PACKAGE: "खराब झालेले पॅकेजिंग", ADDRESS_MISMATCH: "पत्ता जुळत नाही", LEAKING_CONTENTS: "गळणाऱ्या वस्तू", "EQ-1000-A": "कन्व्हेयर लाइन A", "EQ-1000-B": "कन्व्हेयर लाइन B", "EQ-2000-X": "सॉर्टर X", "CV-1000": "कन्व्हेयर मॉडेल CV-1000" },
+  bn: { "T-PICKUP": "পার্সেল পিকআপ", "T-COD-REVIEW": "ক্যাশ-অন-ডেলিভারি পর্যালোচনা", "T-CONV-INSPECT": "কনভেয়ার দৈনিক পরিদর্শন", "T-RETURNS": "গ্রাহক রিটার্ন সংগ্রহ", DAMAGED_PACKAGE: "ক্ষতিগ্রস্ত প্যাকেজিং", ADDRESS_MISMATCH: "ঠিকানা মিলছে না", LEAKING_CONTENTS: "চুইয়ে পড়া জিনিস", "EQ-1000-A": "কনভেয়ার লাইন A", "EQ-1000-B": "কনভেয়ার লাইন B", "EQ-2000-X": "সর্টার X", "CV-1000": "কনভেয়ার মডেল CV-1000" },
+};
+
+/** Field-app screen text. */
 export interface WorkerText {
-  task: string;
-  situation: string;
-  asset: string;
-  model: string;
+  hello: string;
+  chooseTask: string;
+  searchPlaceholder: string;
+  search: string;
+  guidance: string;
+  practice: string;
+  situationQuestion: string;
+  normal: string;
+  whichEquipment: string;
+  back: string;
   language: string;
-  question: string;
-  questionHint: string;
-  none: string;
-  freeText: string;
-  submit: string;
-  checking: string;
-  media: Record<"slide" | "narration" | "source_figure" | "annotated_diagram", string>;
-  downloadSlide: string;
-  practiceGuided: string;
-  practiceIndependent: string;
+  noTasks: string;
+  switchUser: string;
+  practiceIntro: string;
+  guided: string;
+  guidedHint: string;
+  independent: string;
+  independentHint: string;
   showHint: string;
-  noHints: string;
   choose: string;
   submitDecision: string;
   correct: string;
@@ -252,80 +266,98 @@ export interface WorkerText {
   rules: string;
   approvedGuidance: string;
   tryAgain: string;
+  media: Record<"slide" | "narration" | "source_figure" | "annotated_diagram", string>;
+  downloadSlide: string;
 }
 
 export const WORKER_TEXT: Record<Language, WorkerText> = {
   en: {
-    task: "Task", situation: "Situation (optional)", asset: "Asset (optional)", model: "Equipment model (optional)", language: "Language",
-    question: "Question (optional)", questionHint: "Native script, transliterated and code-mixed text work; exact codes must match", none: "— none —", freeText: "— none (free-text search) —",
-    submit: "Get approved guidance", checking: "Checking…",
-    media: { slide: "Instructional slide", narration: "Narrated audio", source_figure: "Approved source diagram", annotated_diagram: "Annotated diagram" },
-    downloadSlide: "Download slide (.pptx)",
-    practiceGuided: "Guided practice (with hints)", practiceIndependent: "Independent assessment (no hints)", showHint: "Show a hint", noHints: "No hints in the independent assessment.",
-    choose: "Choose what you would do", submitDecision: "Submit decision", correct: "Correct decision", incorrect: "Not the right decision", rules: "Rules", approvedGuidance: "Approved guidance", tryAgain: "Try again",
+    hello: "Hello", chooseTask: "What are you working on?", searchPlaceholder: "Describe the problem, for example: torn packaging", search: "Search",
+    guidance: "Guidance", practice: "Practice", situationQuestion: "Is anything unusual?", normal: "No, normal job", whichEquipment: "Which equipment?",
+    back: "Back", language: "Language", noTasks: "No tasks are set up for your role yet.", switchUser: "Switch user",
+    practiceIntro: "Practise real decisions before they happen on the job.", guided: "Guided practice", guidedHint: "With hints and feedback",
+    independent: "Independent check", independentHint: "A new situation, no hints", showHint: "Show a hint", choose: "What would you do?",
+    submitDecision: "Submit decision", correct: "Correct decision", incorrect: "Not the right decision", rules: "What was checked",
+    approvedGuidance: "The approved procedure", tryAgain: "Try again",
+    media: { slide: "Slide", narration: "Audio", source_figure: "Diagram", annotated_diagram: "Labelled diagram" },
+    downloadSlide: "Download slide",
   },
   kn: {
-    task: "ಕಾರ್ಯ", situation: "ಪರಿಸ್ಥಿತಿ (ಐಚ್ಛಿಕ)", asset: "ಆಸ್ತಿ (ಐಚ್ಛಿಕ)", model: "ಯಂತ್ರದ ಮಾದರಿ (ಐಚ್ಛಿಕ)", language: "ಭಾಷೆ",
-    question: "ಪ್ರಶ್ನೆ (ಐಚ್ಛಿಕ)", questionHint: "ಕನ್ನಡ ಲಿಪಿ, ಲಿಪ್ಯಂತರ ಮತ್ತು ಮಿಶ್ರ ಪಠ್ಯ ಕೆಲಸ ಮಾಡುತ್ತವೆ; ಕೋಡ್‌ಗಳು ನಿಖರವಾಗಿರಬೇಕು", none: "— ಯಾವುದೂ ಇಲ್ಲ —", freeText: "— ಯಾವುದೂ ಇಲ್ಲ (ಮುಕ್ತ ಹುಡುಕಾಟ) —",
-    submit: "ಅನುಮೋದಿತ ಮಾರ್ಗದರ್ಶನ ಪಡೆಯಿರಿ", checking: "ಪರಿಶೀಲಿಸಲಾಗುತ್ತಿದೆ…",
-    media: { slide: "ಬೋಧನಾ ಸ್ಲೈಡ್", narration: "ಧ್ವನಿ ವಿವರಣೆ", source_figure: "ಅನುಮೋದಿತ ಮೂಲ ರೇಖಾಚಿತ್ರ", annotated_diagram: "ಟಿಪ್ಪಣಿ ಸಹಿತ ರೇಖಾಚಿತ್ರ" },
-    downloadSlide: "ಸ್ಲೈಡ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ (.pptx)",
-    practiceGuided: "ಮಾರ್ಗದರ್ಶಿತ ಅಭ್ಯಾಸ (ಸುಳಿವುಗಳೊಂದಿಗೆ)", practiceIndependent: "ಸ್ವತಂತ್ರ ಮೌಲ್ಯಮಾಪನ (ಸುಳಿವುಗಳಿಲ್ಲ)", showHint: "ಸುಳಿವು ತೋರಿಸಿ", noHints: "ಸ್ವತಂತ್ರ ಮೌಲ್ಯಮಾಪನದಲ್ಲಿ ಸುಳಿವುಗಳಿಲ್ಲ.",
-    choose: "ನೀವು ಏನು ಮಾಡುತ್ತೀರಿ ಎಂದು ಆಯ್ಕೆಮಾಡಿ", submitDecision: "ನಿರ್ಧಾರ ಸಲ್ಲಿಸಿ", correct: "ಸರಿಯಾದ ನಿರ್ಧಾರ", incorrect: "ಸರಿಯಾದ ನಿರ್ಧಾರವಲ್ಲ", rules: "ನಿಯಮಗಳು", approvedGuidance: "ಅನುಮೋದಿತ ಮಾರ್ಗದರ್ಶನ", tryAgain: "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+    hello: "ನಮಸ್ಕಾರ", chooseTask: "ನೀವು ಯಾವ ಕೆಲಸ ಮಾಡುತ್ತಿದ್ದೀರಿ?", searchPlaceholder: "ಸಮಸ್ಯೆಯನ್ನು ವಿವರಿಸಿ, ಉದಾ: ಹರಿದ ಪ್ಯಾಕೇಜಿಂಗ್", search: "ಹುಡುಕಿ",
+    guidance: "ಮಾರ್ಗದರ್ಶನ", practice: "ಅಭ್ಯಾಸ", situationQuestion: "ಏನಾದರೂ ಅಸಾಮಾನ್ಯವಿದೆಯೇ?", normal: "ಇಲ್ಲ, ಸಾಮಾನ್ಯ ಕೆಲಸ", whichEquipment: "ಯಾವ ಉಪಕರಣ?",
+    back: "ಹಿಂದೆ", language: "ಭಾಷೆ", noTasks: "ನಿಮ್ಮ ಪಾತ್ರಕ್ಕೆ ಇನ್ನೂ ಯಾವುದೇ ಕೆಲಸಗಳನ್ನು ಹೊಂದಿಸಲಾಗಿಲ್ಲ.", switchUser: "ಬಳಕೆದಾರ ಬದಲಿಸಿ",
+    practiceIntro: "ಕೆಲಸದಲ್ಲಿ ಎದುರಾಗುವ ಮೊದಲೇ ನಿಜವಾದ ನಿರ್ಧಾರಗಳನ್ನು ಅಭ್ಯಾಸ ಮಾಡಿ.", guided: "ಮಾರ್ಗದರ್ಶಿತ ಅಭ್ಯಾಸ", guidedHint: "ಸುಳಿವು ಮತ್ತು ಪ್ರತಿಕ್ರಿಯೆಯೊಂದಿಗೆ",
+    independent: "ಸ್ವತಂತ್ರ ಪರೀಕ್ಷೆ", independentHint: "ಹೊಸ ಸನ್ನಿವೇಶ, ಸುಳಿವು ಇಲ್ಲ", showHint: "ಸುಳಿವು ತೋರಿಸಿ", choose: "ನೀವು ಏನು ಮಾಡುತ್ತೀರಿ?",
+    submitDecision: "ನಿರ್ಧಾರ ಸಲ್ಲಿಸಿ", correct: "ಸರಿಯಾದ ನಿರ್ಧಾರ", incorrect: "ಸರಿಯಾದ ನಿರ್ಧಾರವಲ್ಲ", rules: "ಏನನ್ನು ಪರಿಶೀಲಿಸಲಾಯಿತು",
+    approvedGuidance: "ಅನುಮೋದಿತ ಕಾರ್ಯವಿಧಾನ", tryAgain: "ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ",
+    media: { slide: "ಸ್ಲೈಡ್", narration: "ಆಡಿಯೋ", source_figure: "ರೇಖಾಚಿತ್ರ", annotated_diagram: "ಲೇಬಲ್ ಸಹಿತ ರೇಖಾಚಿತ್ರ" },
+    downloadSlide: "ಸ್ಲೈಡ್ ಡೌನ್‌ಲೋಡ್ ಮಾಡಿ",
   },
   ta: {
-    task: "பணி", situation: "சூழ்நிலை (விருப்பம்)", asset: "சொத்து (விருப்பம்)", model: "இயந்திர மாடல் (விருப்பம்)", language: "மொழி",
-    question: "கேள்வி (விருப்பம்)", questionHint: "தமிழ் எழுத்து, ஒலிபெயர்ப்பு மற்றும் கலப்பு உரை வேலை செய்யும்; குறியீடுகள் சரியாக இருக்க வேண்டும்", none: "— எதுவும் இல்லை —", freeText: "— எதுவும் இல்லை (இலவச தேடல்) —",
-    submit: "அங்கீகரிக்கப்பட்ட வழிகாட்டலைப் பெறுக", checking: "சரிபார்க்கிறது…",
-    media: { slide: "பயிற்சி ஸ்லைடு", narration: "குரல் விளக்கம்", source_figure: "அங்கீகரிக்கப்பட்ட மூல வரைபடம்", annotated_diagram: "குறிப்புகளுடன் வரைபடம்" },
-    downloadSlide: "ஸ்லைடைப் பதிவிறக்கவும் (.pptx)",
-    practiceGuided: "வழிகாட்டப்பட்ட பயிற்சி (குறிப்புகளுடன்)", practiceIndependent: "சுயாதீன மதிப்பீடு (குறிப்புகள் இல்லை)", showHint: "குறிப்பைக் காட்டு", noHints: "சுயாதீன மதிப்பீட்டில் குறிப்புகள் இல்லை.",
-    choose: "நீங்கள் என்ன செய்வீர்கள் என்பதைத் தேர்ந்தெடுக்கவும்", submitDecision: "முடிவைச் சமர்ப்பிக்கவும்", correct: "சரியான முடிவு", incorrect: "சரியான முடிவு அல்ல", rules: "விதிகள்", approvedGuidance: "அங்கீகரிக்கப்பட்ட வழிகாட்டல்", tryAgain: "மீண்டும் முயற்சிக்கவும்",
+    hello: "வணக்கம்", chooseTask: "நீங்கள் எந்த வேலையில் இருக்கிறீர்கள்?", searchPlaceholder: "பிரச்சினையை விவரிக்கவும், எ.கா: கிழிந்த பேக்கேஜிங்", search: "தேடு",
+    guidance: "வழிகாட்டல்", practice: "பயிற்சி", situationQuestion: "ஏதாவது வழக்கத்திற்கு மாறாக உள்ளதா?", normal: "இல்லை, வழக்கமான வேலை", whichEquipment: "எந்த இயந்திரம்?",
+    back: "பின்செல்", language: "மொழி", noTasks: "உங்கள் பணிக்கு இன்னும் எந்தப் பணிகளும் அமைக்கப்படவில்லை.", switchUser: "பயனரை மாற்று",
+    practiceIntro: "வேலையில் நிகழும் முன்பே உண்மையான முடிவுகளைப் பயிற்சி செய்யுங்கள்.", guided: "வழிகாட்டப்பட்ட பயிற்சி", guidedHint: "குறிப்புகள் மற்றும் கருத்துகளுடன்",
+    independent: "சுயாதீன சோதனை", independentHint: "புதிய சூழ்நிலை, குறிப்புகள் இல்லை", showHint: "குறிப்பைக் காட்டு", choose: "நீங்கள் என்ன செய்வீர்கள்?",
+    submitDecision: "முடிவைச் சமர்ப்பிக்கவும்", correct: "சரியான முடிவு", incorrect: "சரியான முடிவு அல்ல", rules: "எவை சரிபார்க்கப்பட்டன",
+    approvedGuidance: "அங்கீகரிக்கப்பட்ட நடைமுறை", tryAgain: "மீண்டும் முயற்சிக்கவும்",
+    media: { slide: "ஸ்லைடு", narration: "ஒலி", source_figure: "வரைபடம்", annotated_diagram: "குறிப்புகளுடன் வரைபடம்" },
+    downloadSlide: "ஸ்லைடைப் பதிவிறக்கு",
   },
   te: {
-    task: "పని", situation: "పరిస్థితి (ఐచ్ఛికం)", asset: "ఆస్తి (ఐచ్ఛికం)", model: "యంత్ర మోడల్ (ఐచ్ఛికం)", language: "భాష",
-    question: "ప్రశ్న (ఐచ్ఛికం)", questionHint: "తెలుగు లిపి, లిప్యంతరీకరణ మరియు మిశ్రమ వచనం పనిచేస్తాయి; కోడ్‌లు ఖచ్చితంగా ఉండాలి", none: "— ఏదీ లేదు —", freeText: "— ఏదీ లేదు (ఉచిత శోధన) —",
-    submit: "ఆమోదించిన మార్గదర్శనం పొందండి", checking: "తనిఖీ చేస్తోంది…",
-    media: { slide: "బోధనా స్లైడ్", narration: "వాయిస్ వివరణ", source_figure: "ఆమోదించిన మూల చిత్రం", annotated_diagram: "వివరణలతో కూడిన చిత్రం" },
-    downloadSlide: "స్లైడ్ డౌన్‌లోడ్ చేయండి (.pptx)",
-    practiceGuided: "మార్గదర్శక అభ్యాసం (సూచనలతో)", practiceIndependent: "స్వతంత్ర మూల్యాంకనం (సూచనలు లేవు)", showHint: "సూచన చూపించు", noHints: "స్వతంత్ర మూల్యాంకనంలో సూచనలు లేవు.",
-    choose: "మీరు ఏమి చేస్తారో ఎంచుకోండి", submitDecision: "నిర్ణయాన్ని సమర్పించండి", correct: "సరైన నిర్ణయం", incorrect: "సరైన నిర్ణయం కాదు", rules: "నియమాలు", approvedGuidance: "ఆమోదించిన మార్గదర్శనం", tryAgain: "మళ్లీ ప్రయత్నించండి",
+    hello: "నమస్కారం", chooseTask: "మీరు ఏ పని చేస్తున్నారు?", searchPlaceholder: "సమస్యను వివరించండి, ఉదా: చిరిగిన ప్యాకేజింగ్", search: "వెతకండి",
+    guidance: "మార్గదర్శనం", practice: "అభ్యాసం", situationQuestion: "ఏదైనా అసాధారణంగా ఉందా?", normal: "లేదు, సాధారణ పని", whichEquipment: "ఏ యంత్రం?",
+    back: "వెనుకకు", language: "భాష", noTasks: "మీ పాత్రకు ఇంకా ఏ పనులూ సెట్ చేయలేదు.", switchUser: "వినియోగదారుని మార్చండి",
+    practiceIntro: "పనిలో ఎదురయ్యే ముందే నిజమైన నిర్ణయాలను అభ్యాసం చేయండి.", guided: "మార్గదర్శక అభ్యాసం", guidedHint: "సూచనలు మరియు అభిప్రాయంతో",
+    independent: "స్వతంత్ర పరీక్ష", independentHint: "కొత్త పరిస్థితి, సూచనలు లేవు", showHint: "సూచన చూపించు", choose: "మీరు ఏమి చేస్తారు?",
+    submitDecision: "నిర్ణయాన్ని సమర్పించండి", correct: "సరైన నిర్ణయం", incorrect: "సరైన నిర్ణయం కాదు", rules: "ఏమి పరిశీలించారు",
+    approvedGuidance: "ఆమోదించిన విధానం", tryAgain: "మళ్లీ ప్రయత్నించండి",
+    media: { slide: "స్లైడ్", narration: "ఆడియో", source_figure: "చిత్రం", annotated_diagram: "లేబుల్‌లతో చిత్రం" },
+    downloadSlide: "స్లైడ్ డౌన్‌లోడ్ చేయండి",
   },
   hi: {
-    task: "कार्य", situation: "स्थिति (वैकल्पिक)", asset: "एसेट (वैकल्पिक)", model: "उपकरण मॉडल (वैकल्पिक)", language: "भाषा",
-    question: "प्रश्न (वैकल्पिक)", questionHint: "देवनागरी, लिप्यंतरित और मिश्रित पाठ काम करते हैं; कोड बिल्कुल सही होने चाहिए", none: "— कोई नहीं —", freeText: "— कोई नहीं (मुक्त खोज) —",
-    submit: "स्वीकृत मार्गदर्शन पाएँ", checking: "जाँच हो रही है…",
-    media: { slide: "प्रशिक्षण स्लाइड", narration: "ऑडियो विवरण", source_figure: "स्वीकृत मूल चित्र", annotated_diagram: "टिप्पणी सहित चित्र" },
-    downloadSlide: "स्लाइड डाउनलोड करें (.pptx)",
-    practiceGuided: "मार्गदर्शित अभ्यास (संकेतों के साथ)", practiceIndependent: "स्वतंत्र मूल्यांकन (कोई संकेत नहीं)", showHint: "संकेत दिखाएँ", noHints: "स्वतंत्र मूल्यांकन में कोई संकेत नहीं है।",
-    choose: "चुनें कि आप क्या करेंगे", submitDecision: "निर्णय जमा करें", correct: "सही निर्णय", incorrect: "सही निर्णय नहीं", rules: "नियम", approvedGuidance: "स्वीकृत मार्गदर्शन", tryAgain: "फिर से प्रयास करें",
+    hello: "नमस्ते", chooseTask: "आप कौन-सा काम कर रहे हैं?", searchPlaceholder: "समस्या बताइए, जैसे: फटी पैकेजिंग", search: "खोजें",
+    guidance: "मार्गदर्शन", practice: "अभ्यास", situationQuestion: "क्या कुछ असामान्य है?", normal: "नहीं, सामान्य काम", whichEquipment: "कौन-सा उपकरण?",
+    back: "वापस", language: "भाषा", noTasks: "आपकी भूमिका के लिए अभी कोई काम तय नहीं है।", switchUser: "उपयोगकर्ता बदलें",
+    practiceIntro: "काम पर आने से पहले असली निर्णयों का अभ्यास करें।", guided: "मार्गदर्शित अभ्यास", guidedHint: "संकेत और प्रतिक्रिया के साथ",
+    independent: "स्वतंत्र जाँच", independentHint: "नई स्थिति, कोई संकेत नहीं", showHint: "संकेत दिखाएँ", choose: "आप क्या करेंगे?",
+    submitDecision: "निर्णय जमा करें", correct: "सही निर्णय", incorrect: "सही निर्णय नहीं", rules: "क्या जाँचा गया",
+    approvedGuidance: "स्वीकृत प्रक्रिया", tryAgain: "फिर से प्रयास करें",
+    media: { slide: "स्लाइड", narration: "ऑडियो", source_figure: "चित्र", annotated_diagram: "लेबल वाला चित्र" },
+    downloadSlide: "स्लाइड डाउनलोड करें",
   },
   ml: {
-    task: "ജോലി", situation: "സാഹചര്യം (ഐച്ഛികം)", asset: "ആസ്തി (ഐച്ഛികം)", model: "ഉപകരണ മോഡൽ (ഐച്ഛികം)", language: "ഭാഷ",
-    question: "ചോദ്യം (ഐച്ഛികം)", questionHint: "മലയാളം ലിപി, ലിപ്യന്തരണം, കലർന്ന വാചകം എന്നിവ പ്രവർത്തിക്കും; കോഡുകൾ കൃത്യമായിരിക്കണം", none: "— ഒന്നുമില്ല —", freeText: "— ഒന്നുമില്ല (സ്വതന്ത്ര തിരയൽ) —",
-    submit: "അംഗീകൃത മാർഗ്ഗനിർദ്ദേശം നേടുക", checking: "പരിശോധിക്കുന്നു…",
-    media: { slide: "പരിശീലന സ്ലൈഡ്", narration: "ശബ്ദ വിവരണം", source_figure: "അംഗീകൃത ഉറവിട ചിത്രം", annotated_diagram: "കുറിപ്പുകളുള്ള ചിത്രം" },
-    downloadSlide: "സ്ലൈഡ് ഡൗൺലോഡ് ചെയ്യുക (.pptx)",
-    practiceGuided: "മാർഗ്ഗനിർദ്ദേശിത പരിശീലനം (സൂചനകളോടെ)", practiceIndependent: "സ്വതന്ത്ര വിലയിരുത്തൽ (സൂചനകളില്ല)", showHint: "സൂചന കാണിക്കുക", noHints: "സ്വതന്ത്ര വിലയിരുത്തലിൽ സൂചനകളില്ല.",
-    choose: "നിങ്ങൾ എന്ത് ചെയ്യുമെന്ന് തിരഞ്ഞെടുക്കുക", submitDecision: "തീരുമാനം സമർപ്പിക്കുക", correct: "ശരിയായ തീരുമാനം", incorrect: "ശരിയായ തീരുമാനമല്ല", rules: "നിയമങ്ങൾ", approvedGuidance: "അംഗീകൃത മാർഗ്ഗനിർദ്ദേശം", tryAgain: "വീണ്ടും ശ്രമിക്കുക",
+    hello: "നമസ്കാരം", chooseTask: "നിങ്ങൾ ഏത് ജോലിയാണ് ചെയ്യുന്നത്?", searchPlaceholder: "പ്രശ്നം വിവരിക്കുക, ഉദാ: കീറിയ പാക്കേജിംഗ്", search: "തിരയുക",
+    guidance: "മാർഗ്ഗനിർദ്ദേശം", practice: "പരിശീലനം", situationQuestion: "എന്തെങ്കിലും അസാധാരണമായി ഉണ്ടോ?", normal: "ഇല്ല, സാധാരണ ജോലി", whichEquipment: "ഏത് ഉപകരണം?",
+    back: "തിരികെ", language: "ഭാഷ", noTasks: "നിങ്ങളുടെ റോളിന് ഇതുവരെ ജോലികൾ സജ്ജീകരിച്ചിട്ടില്ല.", switchUser: "ഉപയോക്താവിനെ മാറ്റുക",
+    practiceIntro: "ജോലിയിൽ സംഭവിക്കുന്നതിന് മുമ്പ് യഥാർത്ഥ തീരുമാനങ്ങൾ പരിശീലിക്കുക.", guided: "മാർഗ്ഗനിർദ്ദേശിത പരിശീലനം", guidedHint: "സൂചനകളും പ്രതികരണവും സഹിതം",
+    independent: "സ്വതന്ത്ര പരിശോധന", independentHint: "പുതിയ സാഹചര്യം, സൂചനകളില്ല", showHint: "സൂചന കാണിക്കുക", choose: "നിങ്ങൾ എന്ത് ചെയ്യും?",
+    submitDecision: "തീരുമാനം സമർപ്പിക്കുക", correct: "ശരിയായ തീരുമാനം", incorrect: "ശരിയായ തീരുമാനമല്ല", rules: "എന്താണ് പരിശോധിച്ചത്",
+    approvedGuidance: "അംഗീകൃത നടപടിക്രമം", tryAgain: "വീണ്ടും ശ്രമിക്കുക",
+    media: { slide: "സ്ലൈഡ്", narration: "ഓഡിയോ", source_figure: "ചിത്രം", annotated_diagram: "ലേബലുള്ള ചിത്രം" },
+    downloadSlide: "സ്ലൈഡ് ഡൗൺലോഡ് ചെയ്യുക",
   },
   mr: {
-    task: "काम", situation: "परिस्थिती (ऐच्छिक)", asset: "मालमत्ता (ऐच्छिक)", model: "उपकरण मॉडेल (ऐच्छिक)", language: "भाषा",
-    question: "प्रश्न (ऐच्छिक)", questionHint: "देवनागरी, लिप्यंतरित आणि मिश्र मजकूर चालतो; कोड अचूक असावेत", none: "— काहीही नाही —", freeText: "— काहीही नाही (मुक्त शोध) —",
-    submit: "मंजूर मार्गदर्शन मिळवा", checking: "तपासत आहे…",
-    media: { slide: "प्रशिक्षण स्लाइड", narration: "ऑडिओ निवेदन", source_figure: "मंजूर मूळ आकृती", annotated_diagram: "टिपांसह आकृती" },
-    downloadSlide: "स्लाइड डाउनलोड करा (.pptx)",
-    practiceGuided: "मार्गदर्शित सराव (संकेतांसह)", practiceIndependent: "स्वतंत्र मूल्यमापन (संकेत नाहीत)", showHint: "संकेत दाखवा", noHints: "स्वतंत्र मूल्यमापनात संकेत नाहीत.",
-    choose: "तुम्ही काय कराल ते निवडा", submitDecision: "निर्णय सादर करा", correct: "योग्य निर्णय", incorrect: "योग्य निर्णय नाही", rules: "नियम", approvedGuidance: "मंजूर मार्गदर्शन", tryAgain: "पुन्हा प्रयत्न करा",
+    hello: "नमस्कार", chooseTask: "तुम्ही कोणते काम करत आहात?", searchPlaceholder: "समस्या सांगा, उदा: फाटलेले पॅकेजिंग", search: "शोधा",
+    guidance: "मार्गदर्शन", practice: "सराव", situationQuestion: "काही असामान्य आहे का?", normal: "नाही, नेहमीचे काम", whichEquipment: "कोणते उपकरण?",
+    back: "मागे", language: "भाषा", noTasks: "तुमच्या भूमिकेसाठी अजून कोणतीही कामे ठरवलेली नाहीत.", switchUser: "वापरकर्ता बदला",
+    practiceIntro: "कामावर प्रसंग येण्यापूर्वी खऱ्या निर्णयांचा सराव करा.", guided: "मार्गदर्शित सराव", guidedHint: "संकेत आणि अभिप्रायासह",
+    independent: "स्वतंत्र तपासणी", independentHint: "नवी परिस्थिती, संकेत नाहीत", showHint: "संकेत दाखवा", choose: "तुम्ही काय कराल?",
+    submitDecision: "निर्णय सादर करा", correct: "योग्य निर्णय", incorrect: "योग्य निर्णय नाही", rules: "काय तपासले गेले",
+    approvedGuidance: "मंजूर प्रक्रिया", tryAgain: "पुन्हा प्रयत्न करा",
+    media: { slide: "स्लाइड", narration: "ऑडिओ", source_figure: "आकृती", annotated_diagram: "लेबल असलेली आकृती" },
+    downloadSlide: "स्लाइड डाउनलोड करा",
   },
   bn: {
-    task: "কাজ", situation: "পরিস্থিতি (ঐচ্ছিক)", asset: "অ্যাসেট (ঐচ্ছিক)", model: "যন্ত্রের মডেল (ঐচ্ছিক)", language: "ভাষা",
-    question: "প্রশ্ন (ঐচ্ছিক)", questionHint: "বাংলা লিপি, প্রতিবর্ণীকৃত ও মিশ্র লেখা কাজ করে; কোড হুবহু মিলতে হবে", none: "— কোনোটি নয় —", freeText: "— কোনোটি নয় (মুক্ত অনুসন্ধান) —",
-    submit: "অনুমোদিত নির্দেশনা পান", checking: "যাচাই করা হচ্ছে…",
-    media: { slide: "প্রশিক্ষণ স্লাইড", narration: "অডিও বর্ণনা", source_figure: "অনুমোদিত মূল চিত্র", annotated_diagram: "টীকাসহ চিত্র" },
-    downloadSlide: "স্লাইড ডাউনলোড করুন (.pptx)",
-    practiceGuided: "নির্দেশিত অনুশীলন (ইঙ্গিতসহ)", practiceIndependent: "স্বাধীন মূল্যায়ন (ইঙ্গিত নেই)", showHint: "ইঙ্গিত দেখান", noHints: "স্বাধীন মূল্যায়নে কোনো ইঙ্গিত নেই।",
-    choose: "আপনি কী করবেন বেছে নিন", submitDecision: "সিদ্ধান্ত জমা দিন", correct: "সঠিক সিদ্ধান্ত", incorrect: "সঠিক সিদ্ধান্ত নয়", rules: "নিয়ম", approvedGuidance: "অনুমোদিত নির্দেশনা", tryAgain: "আবার চেষ্টা করুন",
+    hello: "নমস্কার", chooseTask: "আপনি কোন কাজ করছেন?", searchPlaceholder: "সমস্যাটি লিখুন, যেমন: ছেঁড়া প্যাকেজিং", search: "খুঁজুন",
+    guidance: "নির্দেশনা", practice: "অনুশীলন", situationQuestion: "অস্বাভাবিক কিছু আছে কি?", normal: "না, স্বাভাবিক কাজ", whichEquipment: "কোন যন্ত্র?",
+    back: "ফিরে যান", language: "ভাষা", noTasks: "আপনার ভূমিকার জন্য এখনও কোনো কাজ ঠিক করা হয়নি।", switchUser: "ব্যবহারকারী বদলান",
+    practiceIntro: "কাজে ঘটার আগেই আসল সিদ্ধান্তগুলি অনুশীলন করুন।", guided: "নির্দেশিত অনুশীলন", guidedHint: "ইঙ্গিত ও মতামতসহ",
+    independent: "স্বাধীন যাচাই", independentHint: "নতুন পরিস্থিতি, কোনো ইঙ্গিত নেই", showHint: "ইঙ্গিত দেখান", choose: "আপনি কী করবেন?",
+    submitDecision: "সিদ্ধান্ত জমা দিন", correct: "সঠিক সিদ্ধান্ত", incorrect: "সঠিক সিদ্ধান্ত নয়", rules: "কী যাচাই করা হয়েছে",
+    approvedGuidance: "অনুমোদিত পদ্ধতি", tryAgain: "আবার চেষ্টা করুন",
+    media: { slide: "স্লাইড", narration: "অডিও", source_figure: "চিত্র", annotated_diagram: "লেবেলযুক্ত চিত্র" },
+    downloadSlide: "স্লাইড ডাউনলোড করুন",
   },
 };
 

@@ -134,7 +134,7 @@ export interface SeedOptions {
 
 export async function seedDemo(store: Store, options: SeedOptions = {}): Promise<void> {
   const withActivity = options.withActivity ?? true;
-  let elapsed = -40 * DAY;
+  let elapsed = -100 * DAY;
   const tick = (minutes: number) => {
     elapsed += minutes * 60000;
     setClockOffset(elapsed);
@@ -273,78 +273,162 @@ export async function seedDemo(store: Store, options: SeedOptions = {}): Promise
 
 type Ctx = { task_id?: string; situation_code?: string; asset_id?: string; equipment_model?: string; query?: string };
 
-/** Synthetic usage produced by calling the real delivery, practice and event code paths. */
+/** Language mix of the synthetic workforce (share of workers whose app language it is). */
+const LANGUAGE_MIX: [Language, number][] = [
+  ["hi", 22],
+  ["kn", 18],
+  ["en", 16],
+  ["ta", 12],
+  ["te", 12],
+  ["mr", 9],
+  ["bn", 6],
+  ["ml", 5],
+];
+
+const FREE_TEXT: Partial<Record<Language, string[]>> = {
+  en: ["parcel packaging is torn", "parcel weight limit kg", "box is wet", "emergency stop check"],
+  hi: ["पैकेजिंग फटी", "पार्सल का वज़न"],
+  kn: ["ಪ್ಯಾಕೇಜಿಂಗ್ ಹಾನಿ", "ಪಾರ್ಸೆಲ್ ತೂಕ"],
+  ta: ["சேதமடைந்த பேக்கேஜிங்"],
+  te: ["దెబ్బతిన్న ప్యాకేజింగ్"],
+  mr: ["खराब पॅकेजिंग"],
+  bn: ["ক্ষতিগ্রস্ত প্যাকেজিং"],
+  ml: ["കേടായ പാക്കേജിംഗ്"],
+};
+
+interface Worker {
+  principal: Principal;
+  language: Language;
+  kind: "delivery" | "technician" | "supervisor";
+}
+
+/** A synthetic workforce: frontline identities that only exist as pseudonymous activity. */
+function workforce(random: () => number): Worker[] {
+  const make = (kind: Worker["kind"], workRole: string, count: number): Worker[] =>
+    Array.from({ length: count }, (_, i) => ({
+      kind,
+      language: pick(random, LANGUAGE_MIX.map(([l]) => l), LANGUAGE_MIX.map(([, w]) => w)),
+      principal: { userId: `w-${kind}-${String(i + 1).padStart(3, "0")}`, tenantId: TENANT, displayName: `${kind} ${i + 1}`, roles: ["worker"], workRole },
+    }));
+  return [...make("delivery", "delivery_associate", 84), ...make("technician", "maintenance_technician", 26), ...make("supervisor", "hub_supervisor", 14)];
+}
+
+function requestFor(kind: Worker["kind"], language: Language, random: () => number): Ctx {
+  if (kind === "technician") {
+    return pick<Ctx>(
+      random,
+      [
+        { task_id: "T-CONV-INSPECT", equipment_model: "CV-1000" },
+        { task_id: "T-CONV-INSPECT", asset_id: "EQ-1000-A" },
+        { task_id: "T-CONV-INSPECT", asset_id: "EQ-1000-B" },
+        { task_id: "T-CONV-INSPECT" },
+        { task_id: "T-CONV-INSPECT", asset_id: "EQ-2000-X" },
+      ],
+      [52, 20, 14, 9, 5],
+    );
+  }
+  if (kind === "supervisor") {
+    return pick<Ctx>(random, [{ task_id: "T-COD-REVIEW" }, { task_id: "T-PICKUP", situation_code: "ADDRESS_MISMATCH" }], [80, 20]);
+  }
+  const queries = FREE_TEXT[language] ?? FREE_TEXT.en ?? [];
+  const query = queries[Math.floor(random() * queries.length)] as string;
+  return pick<Ctx>(
+    random,
+    [
+      { task_id: "T-PICKUP" },
+      { task_id: "T-PICKUP", situation_code: "DAMAGED_PACKAGE" },
+      { task_id: "T-PICKUP", situation_code: "ADDRESS_MISMATCH" },
+      { task_id: "T-PICKUP", situation_code: "LEAKING_CONTENTS" },
+      { task_id: "T-RETURNS" },
+      { task_id: "T-COD-REVIEW" },
+      { query },
+    ],
+    [52, 19, 7, 3, 5, 2, 12],
+  );
+}
+
+export const ACTIVITY_DAYS = 90;
+
+/**
+ * Ninety days of synthetic usage by a workforce of 124 frontline workers, produced by calling
+ * the real delivery, event and practice code paths with the clock set to each moment.
+ */
 export function generateActivity(store: Store, seedValue = 42): void {
   const random = rng(seedValue);
-  store.transact((s) => {
-    const p = (username: string) => principalOf(s.users.find((u) => u.username === username) as User);
-    const rider = p("arjun.rider");
-    const tech = p("lakshmi.tech");
-    const sup = p("deepa.supervisor");
-    const perLanguage = (who: Principal, ctx: Ctx, en: number, other: number): [Principal, Ctx, Language, number][] =>
-      LANGUAGES.map((lang) => [who, ctx, lang, lang === "en" ? en : other + (lang.charCodeAt(1) % 4)]);
-    const patterns: [Principal, Ctx, Language, number][] = [
-      ...perLanguage(rider, { task_id: "T-PICKUP" }, 34, 6),
-      ...perLanguage(rider, { task_id: "T-PICKUP", situation_code: "DAMAGED_PACKAGE" }, 22, 5),
-      ...perLanguage(tech, { task_id: "T-CONV-INSPECT", equipment_model: "CV-1000" }, 20, 4),
-      [tech, { task_id: "T-CONV-INSPECT", asset_id: "EQ-1000-A" }, "en", 12],
-      [tech, { task_id: "T-CONV-INSPECT" }, "en", 7],
-      [tech, { task_id: "T-CONV-INSPECT", asset_id: "EQ-2000-X" }, "en", 5],
-      [rider, { task_id: "T-PICKUP", situation_code: "ADDRESS_MISMATCH" }, "en", 9],
-      [rider, { task_id: "T-PICKUP", situation_code: "LEAKING_CONTENTS" }, "en", 6],
-      [rider, { task_id: "T-RETURNS" }, "en", 7],
-      [rider, { task_id: "T-COD-REVIEW" }, "en", 5],
-      [rider, { query: "parcel packaging is torn" }, "en", 8],
-      [rider, { query: "parcel weight limit kg" }, "en", 6],
-      [rider, { query: "पैकेजिंग फटी" }, "hi", 5],
-      [rider, { query: "ಪ್ಯಾಕೇಜಿಂಗ್ ಹಾನಿ" }, "kn", 5],
-      [sup, { task_id: "T-COD-REVIEW" }, "en", 10],
-    ];
-    for (const [who, ctx, language, count] of patterns) {
-      for (let i = 0; i < count; i++) {
-        const response = resolve(s, who, {
-          contract_version: CONTRACT_VERSION,
-          tenant_id: TENANT,
-          request_id: newId(),
-          host_app_id: "demo-mobile",
-          host_version: "0.1.0",
-          language,
-          ...ctx,
-        });
-        const refs = response.media_refs ?? [];
-        if (response.outcome === "answer" && refs.length && random() < 0.6) {
-          const ref = refs[Math.floor(random() * refs.length)] as (typeof refs)[number];
-          ingestEvent(s, who, {
-            event_name: "media.opened",
-            schema_version: CONTRACT_VERSION,
-            event_id: newId(),
-            tenant: TENANT,
-            actor: pseudonym(who.userId),
-            timestamp: new Date(nowMs()).toISOString(),
-            context: { task_id: ctx.task_id ?? null, media_type: ref.type },
-            object_id: response.object_id,
-            object_version: response.object_version,
-            language,
-            outcome: "ok",
-            channel: "demo-mobile",
+  const workers = workforce(random);
+  const scenario = store.getState().scenarios.find((x) => x.scenarioKey === SCENARIO_KEY);
+  const today = new Date(nowMs());
+  today.setUTCHours(0, 0, 0, 0);
+  const at = (day: number) => today.getTime() - day * DAY + (2.5 + random() * 10) * 3600000; // 08:00–18:30 IST
+  try {
+    store.transact((s) => {
+      for (let day = ACTIVITY_DAYS - 1; day >= 0; day--) {
+        const weekday = new Date(today.getTime() - day * DAY).getUTCDay();
+        const growth = 0.7 + 0.4 * ((ACTIVITY_DAYS - day) / ACTIVITY_DAYS);
+        const volume = (weekday === 0 ? 0.45 : weekday === 6 ? 0.75 : 1) * growth;
+        for (const worker of workers) {
+          const rate = worker.kind === "delivery" ? 0.62 : worker.kind === "technician" ? 0.5 : 0.4;
+          let requests = 0;
+          while (random() < rate * volume && requests < 3) requests += 1;
+          for (let r = 0; r < requests; r++) {
+            const when = at(day);
+            if (when > Date.now()) continue;
+            setClockOffset(when - Date.now());
+            const language = random() < 0.9 ? worker.language : "en";
+            const ctx = requestFor(worker.kind, language, random);
+            const response = resolve(s, worker.principal, {
+              contract_version: CONTRACT_VERSION,
+              tenant_id: TENANT,
+              request_id: newId(),
+              host_app_id: "field-app",
+              host_version: "1.4.2",
+              language,
+              ...ctx,
+            });
+            const refs = response.media_refs ?? [];
+            if (response.outcome === "answer" && refs.length && random() < 0.35) {
+              const ref = refs[Math.floor(random() * refs.length)] as (typeof refs)[number];
+              setClockOffset(when + 60000 - Date.now());
+              ingestEvent(s, worker.principal, {
+                event_name: "media.opened",
+                schema_version: CONTRACT_VERSION,
+                event_id: newId(),
+                tenant: TENANT,
+                actor: pseudonym(worker.principal.userId),
+                timestamp: new Date(nowMs()).toISOString(),
+                context: { task_id: ctx.task_id ?? null, media_type: ref.type },
+                object_id: response.object_id,
+                object_version: response.object_version,
+                language,
+                outcome: "ok",
+                channel: "field-app",
+              });
+            }
+          }
+        }
+        if (!scenario) continue;
+        // Practice: guided sessions every day; independent checks become more accurate over time.
+        const learners = workers.filter((w) => w.kind === "delivery");
+        for (let i = 0; i < 6; i++) {
+          const learner = learners[Math.floor(random() * learners.length)] as Worker;
+          const when = at(day);
+          if (when > Date.now()) continue;
+          setClockOffset(when - Date.now());
+          const independent = i >= 4;
+          const skill = 0.45 + 0.4 * ((ACTIVITY_DAYS - day) / ACTIVITY_DAYS);
+          attempt(s, learner.principal, {
+            scenarioId: scenario.id,
+            variant: independent ? "independent" : "guided",
+            choiceId: independent
+              ? pick(random, ["Z", "W", "Y", "X"], [skill, (1 - skill) / 2, (1 - skill) / 3, (1 - skill) / 6])
+              : pick(random, ["B", "A", "C"], [skill + 0.1, 1 - skill, 0.1]),
+            hintsUsed: independent ? 0 : Math.floor(random() * 3),
+            language: learner.language,
           });
         }
       }
-    }
-    const scenario = s.scenarios.find((x) => x.scenarioKey === SCENARIO_KEY);
-    if (scenario) {
-      for (let i = 0; i < 34; i++) {
-        const language = LANGUAGES[i % LANGUAGES.length] as Language;
-        attempt(s, rider, { scenarioId: scenario.id, variant: "guided", choiceId: pick(random, ["A", "B", "C"], [3, 6, 1]), hintsUsed: Math.floor(random() * 3), language });
-      }
-      for (let i = 0; i < 21; i++) {
-        const language = LANGUAGES[(i * 3) % LANGUAGES.length] as Language;
-        attempt(s, rider, { scenarioId: scenario.id, variant: "independent", choiceId: pick(random, ["W", "X", "Y", "Z"], [2, 1, 2, 6]), hintsUsed: 0, language });
-      }
-    }
-    const now = nowMs();
-    const backdate = () => new Date(now - Math.floor(random() * 28) * DAY - Math.floor(random() * 900) * 60000).toISOString();
-    for (const e of s.events) e.occurredAt = backdate();
-    for (const a of s.attempts) a.createdAt = backdate();
-  });
+    });
+  } finally {
+    setClockOffset(0);
+  }
 }

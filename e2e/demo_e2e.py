@@ -1,7 +1,7 @@
-"""End-to-end check of the built demo in a real browser (Chrome via Playwright).
+"""End-to-end check of the built app in a real browser (Chrome via Playwright).
 
-Usage: npm run build && npx vite preview --port 4173 &  then  python3 e2e/demo_e2e.py
-Walks the nine demonstrator steps across roles and all eight languages and fails on any
+Usage: npm run build && npx vite preview --port 4173 &  then  python3 e2e/demo_e2e.py [base-url]
+Walks the field app and the console across roles and all eight languages, and fails on any
 console error, page error or failed request.
 """
 
@@ -14,7 +14,7 @@ from playwright.sync_api import expect, sync_playwright
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else "http://localhost:4173"
 
-TITLES = {
+PICKUP = {
     "en": "Standard parcel pickup",
     "kn": "ಸಾಮಾನ್ಯ ಪಾರ್ಸೆಲ್ ಪಿಕಪ್",
     "ta": "வழக்கமான பார்சல் பிக்அப்",
@@ -24,16 +24,6 @@ TITLES = {
     "mr": "सामान्य पार्सल पिकअप",
     "bn": "সাধারণ পার্সেল পিকআপ",
 }
-LANG_OPTION = {"en": "English", "kn": "Kannada", "ta": "Tamil", "te": "Telugu", "hi": "Hindi", "ml": "Malayalam", "mr": "Marathi", "bn": "Bengali"}
-
-
-def option_label(page, select, startswith):
-    expect(select.locator("option").first).to_be_attached()  # wait until the screen has rendered
-    for opt in select.locator("option").all():
-        text = opt.inner_text()
-        if text.startswith(startswith):
-            return text
-    raise AssertionError(f"no option starting with {startswith}")
 
 
 def main() -> None:
@@ -46,146 +36,132 @@ def main() -> None:
         page.on("pageerror", lambda e: problems.append(f"pageerror: {e}"))
         page.on("requestfailed", lambda r: problems.append(f"requestfailed: {r.url}"))
         page.on("response", lambda r: r.status >= 400 and problems.append(f"http {r.status}: {r.url}"))
+        toast = page.locator(".toast")
 
         def sign_in(name: str) -> None:
-            page.goto(BASE + "/login")
-            ready = page.get_by_text("Demo identities").or_(page.get_by_role("button", name="Switch identity"))
-            expect(ready).to_be_visible(timeout=30000)
-            if page.get_by_role("button", name="Switch identity").count():
-                page.get_by_role("button", name="Switch identity").click()
-            page.get_by_role("button", name=re.compile("^" + re.escape(name))).click()
-            expect(page.get_by_role("heading", name=re.compile("^Welcome"))).to_be_visible()
+            page.goto(BASE + "/signin")
+            page.evaluate("localStorage.removeItem('sck-demo-user')")
+            page.goto(BASE + "/signin")
+            page.get_by_role("button", name=re.compile(name)).click()
+            expect(page.locator(".field-body h1, .page-head h1").first).to_be_visible(timeout=30000)
 
-        def nav(label: str) -> None:
-            page.get_by_role("navigation", name="Main").get_by_role("link", name=label).click()
+        def field_language(code: str) -> None:
+            page.locator("#field-language").select_option(code)
 
         page.goto(BASE + "/")
-        expect(page.get_by_text("Demo identities")).to_be_visible(timeout=30000)
+        expect(page.get_by_text("Choose who you are")).to_be_visible(timeout=60000)
 
-        # Step 4 + 9: worker asks in all eight languages (map-free).
+        # Field app: the same task in all eight languages.
         sign_in("Arjun")
-        nav("Ask (task → answer)")
-        form = page.locator("form")
-        for code, title in TITLES.items():
-            lang_select = form.locator("select").nth(0)
-            lang_select.select_option(label=option_label(page, lang_select, LANG_OPTION[code]))
-            form.locator("select").nth(1).select_option("T-PICKUP")
-            form.locator("button[type=submit]").click()
-            expect(page.locator(".answer-ok h2")).to_have_text(title)
-            expect(page.locator(".answer-ok")).to_contain_text("15 kg")
-            expect(page.locator(".answer-ok .media-grid figure")).to_have_count(1)
-        print("ask: 8 languages answered verbatim")
+        for code, title in PICKUP.items():
+            page.goto(BASE + "/field")
+            field_language(code)
+            page.locator(".tile").first.click()
+            expect(page.locator(".answer-card h2")).to_have_text(title)
+            expect(page.locator(".answer-card .procedure")).to_contain_text("15 kg")
+            expect(page.locator(".field-media figure")).to_have_count(1)
+        print("field: pickup answered in all 8 languages")
 
-        # Situation not covered -> abstain (localized), restricted task -> not permitted.
-        form.locator("select").nth(2).select_option("LEAKING_CONTENTS")
-        form.locator("button[type=submit]").click()
-        expect(page.locator(".answer-abstain")).to_contain_text("situation_not_covered")
-        form.locator("select").nth(2).select_option("")
-        form.locator("select").nth(1).select_option("T-COD-REVIEW")
-        form.locator("button[type=submit]").click()
-        expect(page.locator(".answer-refused")).to_contain_text("role_not_permitted")
-        # Free-text query in Hindi script.
-        form.locator("select").nth(1).select_option("")
-        form.locator("select").nth(0).select_option("hi")
-        form.locator("input").fill("पैकेजिंग फटी")
-        form.locator("button[type=submit]").click()
-        expect(page.locator(".answer-ok h2")).to_have_text("पिकअप के समय क्षतिग्रस्त पैकेजिंग")
-        print("ask: abstain, refusal and native-script search ok")
+        field_language("en")
+        page.get_by_role("button", name="Leaking contents").click()
+        expect(page.locator(".no-answer")).to_contain_text("no approved guidance for this situation")
+        page.get_by_role("button", name="Damaged packaging").click()
+        expect(page.locator(".answer-card h2")).to_have_text("Damaged packaging at pickup")
+        page.goto(BASE + "/field")
+        field_language("hi")
+        page.locator(".field-search input").fill("पैकेजिंग फटी")
+        page.locator(".field-search button").click()
+        expect(page.locator(".answer-card h2")).to_have_text("पिकअप के समय क्षतिग्रस्त पैकेजिंग")
+        print("field: situations, uncovered situation and native-script search ok")
 
-        # Step 6: guided then independent practice in Tamil.
-        nav("Practice")
-        page.get_by_role("button", name=re.compile("Guided practice")).click()
-        page.get_by_label("Language").last.select_option("ta")
+        page.goto(BASE + "/field/practice")
+        field_language("ta")
+        page.get_by_role("button", name=re.compile("வழிகாட்டப்பட்ட பயிற்சி")).click()
         page.locator(".choice").filter(has_text="இடைநிறுத்தி").first.click()
-        page.get_by_role("button", name=re.compile("Submit decision|முடிவைச் சமர்ப்பிக்கவும்")).click()
-        expect(page.locator(".scenario-result.ok")).to_be_visible()
-        expect(page.locator(".blocks[lang=ta]")).to_be_visible()
-        page.get_by_role("button", name=re.compile("சுயாதீன மதிப்பீடு")).first.click()  # labels follow the chosen language
-        expect(page.get_by_role("button", name=re.compile("Show a hint|குறிப்பைக் காட்டு"))).to_have_count(0)
-        print("practice: guided + independent ok")
+        page.get_by_role("button", name="முடிவைச் சமர்ப்பிக்கவும்").click()
+        expect(page.locator(".result.ok")).to_be_visible()
+        expect(page.locator(".procedure[lang=ta]")).to_be_visible()
+        page.goto(BASE + "/field/practice")
+        page.get_by_role("button", name=re.compile("சுயாதீன சோதனை")).click()
+        expect(page.locator(".choice").first).to_be_visible()
+        expect(page.get_by_role("button", name="குறிப்பைக் காட்டு")).to_have_count(0)
+        print("field: guided and independent practice ok")
 
-        # Conveyor technician, Malayalam, annotated diagram in the answer.
         sign_in("Lakshmi")
-        nav("Ask (task → answer)")
-        form = page.locator("form")
-        lang_select = form.locator("select").nth(0)
-        lang_select.select_option(label=option_label(page, lang_select, "Malayalam"))
-        form.locator("select").nth(1).select_option("T-CONV-INSPECT")
-        form.locator("select").nth(4).select_option("CV-1000")
-        form.locator("button[type=submit]").click()
-        expect(page.locator(".answer-ok h2")).to_have_text("കൺവെയർ CV-1000 ദൈനംദിന പരിശോധന")
-        expect(page.locator(".answer-ok img")).to_have_count(2)
-        print("ask: HIGH-risk conveyor in Malayalam with diagrams ok")
+        field_language("ml")
+        page.locator(".tile").first.click()
+        expect(page.get_by_role("button", name="കൺവെയർ ലൈൻ A")).to_be_visible()
+        expect(page.locator(".answer-card")).to_have_count(0)
+        page.get_by_role("button", name="കൺവെയർ ലൈൻ A").click()
+        expect(page.locator(".answer-card h2")).to_have_text("കൺവെയർ CV-1000 ദൈനംദിന പരിശോധന")
+        expect(page.locator(".field-media img")).to_have_count(2)
+        print("field: safety-critical conveyor check in Malayalam with diagrams ok")
 
-        # Steps 1, 2, 8: author uploads revision 2 -> dependent knowledge suspended.
+        # Console: a revised SOP suspends live knowledge.
         sign_in("Asha")
-        nav("Knowledge Studio")
+        page.goto(BASE + "/sources")
+        tmp = Path(tempfile.mkdtemp())
         with page.expect_download() as dl:
-            page.get_by_role("button", name=re.compile("Pickup SOP r2")).click()
-        r2 = Path(tempfile.mkdtemp()) / "sop-dl-014-parcel-pickup-r2.md"
+            page.get_by_role("button", name=re.compile("revision 2")).click()
+        r2 = tmp / "sop-dl-014-parcel-pickup-r2.md"
         dl.value.save_as(r2)
         page.locator("input[type=file]").set_input_files(str(r2))
-        page.get_by_label(re.compile("I confirm this material")).check()
-        page.get_by_role("button", name="Upload source").click()
-        expect(page.get_by_text("(revision 2)")).to_be_visible()
-        row = page.locator("tr", has_text="r2").first
-        row.get_by_role("button", name="Extract drafts").click()
-        expect(page.get_by_text(re.compile(r"draft\(s\) created"))).to_be_visible()
-        print("studio: revision uploaded and extracted")
-
-        # DOCX upload path.
+        page.get_by_label(re.compile("I confirm this document")).check()
+        page.get_by_role("button", name="Upload", exact=True).click()
+        expect(toast.filter(has_text="(revision 2)")).to_be_visible()
+        page.locator("tr", has_text="revision 2").get_by_role("button", name="Create drafts").click()
+        expect(toast.filter(has_text="drafts created")).to_be_visible()
         with page.expect_download() as dl:
-            page.get_by_role("button", name="Conveyor SOP (.docx)").click()
-        docx_path = Path(tempfile.mkdtemp()) / "conveyor-copy.docx"
-        dl.value.save_as(docx_path)
-        page.get_by_label("Document key (optional)").fill("sop-mt-099")
-        page.locator("input[type=file]").set_input_files(str(docx_path))
-        page.get_by_label(re.compile("I confirm this material")).check()
-        page.get_by_role("button", name="Upload source").click()
-        expect(page.get_by_text("Uploaded Conveyor CV-1000 daily inspection (revision 1).")).to_be_visible()
-        print("studio: DOCX parsed in the browser")
+            page.get_by_role("button", name=re.compile("Conveyor inspection SOP")).click()
+        docx = tmp / "conveyor-copy.docx"
+        dl.value.save_as(docx)
+        page.locator("input[type=file]").set_input_files(str(docx))
+        page.get_by_label("Document ID (optional)").fill("SOP-MT-099")
+        page.get_by_label(re.compile("I confirm this document")).check()
+        page.get_by_role("button", name="Upload", exact=True).click()
+        expect(toast.filter(has_text="Conveyor CV-1000 daily inspection (revision 1)")).to_be_visible()
+        print("console: revision 2 uploaded and extracted; DOCX parsed in the browser")
 
-        # Worker now gets no pickup answer (suspended), proving old answers are blocked.
         sign_in("Arjun")
-        nav("Ask (task → answer)")
-        form = page.locator("form")
-        form.locator("select").nth(1).select_option("T-PICKUP")
-        form.locator("button[type=submit]").click()
-        expect(page.locator(".answer-abstain")).to_be_visible()
-        print("delivery: suspended version no longer served")
+        field_language("en")
+        page.locator(".tile").first.click()
+        expect(page.locator(".no-answer")).to_be_visible()
+        print("field: suspended procedure is no longer served")
 
-        # Step 3: SME publishes the new pickup draft (12 kg) and the flagged address object.
         sign_in("Vikram")
-        nav("Knowledge Studio")
-        page.get_by_role("link", name=re.compile("^Standard parcel pickup")).first.click()
+        page.goto(BASE + "/knowledge")
+        page.get_by_role("button", name="In progress").click()
+        page.get_by_role("link", name=re.compile("^Standard parcel pickup")).click()
         page.get_by_role("button", name="Submit for review").click()
-        expect(page.get_by_role("button", name="Approve and publish")).to_be_visible()
-        page.get_by_label("Risk class").select_option("LOW")
-        page.get_by_label("Distribution class").select_option("general")
-        page.get_by_role("button", name="Approve and publish").click()
-        expect(page.locator(".page-head .badge.state-published")).to_be_visible()
-        print("review: new pickup version published")
+        expect(toast.filter(has_text="Submitted for review")).to_be_visible()
+        page.get_by_role("button", name="Publish…").click()
+        page.get_by_label("Risk").select_option("LOW")
+        page.get_by_label("Who may receive it").select_option("general")
+        page.get_by_role("dialog").get_by_role("button", name="Publish", exact=True).click()
+        expect(toast.filter(has_text="Published")).to_be_visible()
+        expect(page.locator(".page-head .pill-green").first).to_have_text("Live")
+        print("console: new pickup version (12 kg) published")
 
-        nav("Review queue")
-        page.get_by_role("link", name=re.compile("^Address mismatch")).click()
-        expect(page.get_by_text(re.compile("Source revised; re-extract"))).to_be_visible()
-        page.get_by_role("button", name="Mark flag resolved").click()
-        page.get_by_role("button", name=re.compile("^Save changes")).click()
-        expect(page.get_by_role("button", name=re.compile("^Save changes"))).to_be_disabled()
-        page.get_by_label("Distribution class").select_option("general")
-        page.get_by_role("button", name="Approve and publish").click()
-        expect(page.get_by_role("alert")).to_contain_text("no longer the active revision")
-        print("review: flag resolved; approval blocked because its source was revised")
+        page.goto(BASE + "/")
+        page.get_by_role("link", name=re.compile("Address mismatch at pickup")).click()
+        page.get_by_role("button", name="Edit").click()
+        page.get_by_role("button", name="Mark as reviewed").click()
+        page.get_by_role("button", name="Save changes").click()
+        expect(toast.filter(has_text="Changes saved")).to_be_visible()
+        page.get_by_role("button", name="Publish…").click()
+        page.get_by_label("Who may receive it").select_option("general")
+        page.get_by_role("dialog").get_by_role("button", name="Publish", exact=True).click()
+        expect(page.get_by_role("dialog").get_by_role("alert")).to_contain_text("no longer the active revision")
+        page.get_by_role("dialog").get_by_role("button", name="Cancel").click()
+        print("console: reviewed line saved; publishing blocked because its source changed")
 
-        # Translate the new pickup version into Hindi; protected-term check first.
         sign_in("Asha")
-        page.goto(BASE + "/library")
-        page.get_by_label("Filter by state").select_option("published")
-        page.get_by_role("link", name="Standard parcel pickup").first.click()
-        page.get_by_role("tab", name="Languages").click()
+        page.goto(BASE + "/knowledge")
+        page.get_by_role("link", name=re.compile("^Standard parcel pickup")).click()
+        page.get_by_role("tab", name=re.compile("^Languages")).click()
         page.locator("button.lang-cell", has_text="हिन्दी").click()
-        page.get_by_label("Title (Hindi)").fill("सामान्य पार्सल पिकअप")
-        areas = page.locator(".translate-grid textarea")
+        page.get_by_label("Title in Hindi").fill("सामान्य पार्सल पिकअप")
+        areas = page.locator(".translate textarea")
         texts = [
             "पुष्टि करें कि ऐप में दिखाया गया पिकअप कोड पार्सल के लेबल से मेल खाता है।",
             "पार्सल उठाने से पहले उसका बारकोड स्कैन करें।",
@@ -193,81 +169,73 @@ def main() -> None:
             "पार्सल को डिलीवरी बैग में सीधा रखें और बैग बंद करें।",
             "ऐप में पिकअप को पूरा चिह्नित करें।",
         ]
-        for i, t in enumerate(texts):
-            areas.nth(i).fill(t)
-        page.get_by_role("button", name="Save translation draft").click()
-        expect(page.get_by_text("Altered protected terms: 12, 12 kg")).to_be_visible()
+        for i, text in enumerate(texts):
+            areas.nth(i).fill(text)
+        page.get_by_role("button", name="Save translation").click()
+        expect(page.get_by_text("Codes, units or numbers changed: 12, 12 kg")).to_be_visible()
         areas.nth(2).fill("जाँचें कि पार्सल का वज़न 12 kg से अधिक नहीं है; 12 kg से भारी पार्सल को दो लोग मिलकर उठाएँ।")
-        page.get_by_role("button", name="Save translation draft").click()
-        expect(page.get_by_text("Language approval")).to_be_visible()
-        print("translation: protected terms enforced, Hindi draft saved")
+        page.get_by_role("button", name="Save translation").click()
+        expect(toast.filter(has_text="Translation saved")).to_be_visible()
+        print("console: protected terms enforced; Hindi translation saved")
 
         sign_in("Kavya")
-        page.goto(BASE + "/review")
-        page.locator("li", has_text="waiting for bilingual review").get_by_role("link").first.click()
-        page.get_by_role("tab", name="Languages").click()
-        page.locator("button.lang-cell", has_text="हिन्दी").click()
-        page.get_by_role("button", name="Approve as bilingual reviewer").click()
-        expect(page.locator("button.lang-cell", has_text="हिन्दी").locator(".badge")).to_have_text("approved")
-        print("translation: Hindi approved by bilingual reviewer")
+        page.get_by_role("link", name=re.compile("Approve the HI translation")).click()
+        page.get_by_role("button", name="Approve language").click()
+        expect(toast.filter(has_text="Language review recorded")).to_be_visible()
+        expect(page.locator("button.lang-cell", has_text="हिन्दी").locator(".pill")).to_have_text("Approved")
+        print("console: Hindi approved by the language reviewer")
 
-        # Step 5: localized slide for the new version, approved by the bilingual reviewer.
         sign_in("Asha")
-        page.goto(BASE + "/library")
-        page.get_by_label("Filter by state").select_option("published")
-        page.get_by_role("link", name="Standard parcel pickup").first.click()
-        page.get_by_role("tab", name="Controlled media").click()
-        page.get_by_label("Slide language").select_option("hi")
-        page.get_by_role("button", name="Generate slide").click()
-        expect(page.get_by_text(re.compile("needs approval by another reviewer"))).to_be_visible()
+        page.goto(BASE + "/knowledge")
+        page.get_by_role("link", name=re.compile("^Standard parcel pickup")).click()
+        page.get_by_role("tab", name=re.compile("^Media")).click()
+        page.get_by_role("button", name="Slide", exact=True).click()
+        page.get_by_role("dialog").get_by_label("Language").select_option("hi")
+        page.get_by_role("dialog").get_by_role("button", name="Create").click()
+        expect(toast.filter(has_text="Created")).to_be_visible()
         sign_in("Kavya")
-        page.goto(BASE + "/review")
-        page.locator("li", has_text="slide").get_by_role("link").first.click()
-        page.get_by_role("tab", name="Controlled media").click()
+        page.get_by_role("link", name=re.compile("slide")).first.click()
         page.get_by_role("button", name="Approve", exact=True).click()
-        expect(page.locator(".media-card .badge.state-approved")).to_have_count(1)
-        print("media: Hindi slide generated, verified and approved")
+        expect(toast.filter(has_text="Media approved")).to_be_visible()
+        print("console: Hindi slide generated, text-verified and approved")
 
         sign_in("Arjun")
-        nav("Ask (task → answer)")
-        form = page.locator("form")
-        lang_select = form.locator("select").nth(0)
-        lang_select.select_option(label=option_label(page, lang_select, "Hindi"))
-        form.locator("select").nth(1).select_option("T-PICKUP")
-        form.locator("button[type=submit]").click()
-        expect(page.locator(".answer-ok")).to_contain_text("12 kg")
-        expect(page.locator(".answer-ok .citation")).to_contain_text("r2")
-        form.locator("select").nth(0).select_option(label=option_label(page, lang_select, "Kannada"))
-        form.locator("button[type=submit]").click()
-        expect(page.locator(".answer-abstain")).to_contain_text("language_not_approved")
-        print("delivery: v2 served in Hindi; unapproved Kannada abstains")
+        field_language("hi")
+        page.locator(".tile").first.click()
+        expect(page.locator(".answer-card .procedure")).to_contain_text("12 kg")
+        expect(page.locator(".provenance")).to_contain_text("r2")
+        field_language("kn")
+        expect(page.locator(".no-answer")).to_be_visible()
+        print("field: version 2 served in Hindi; unapproved Kannada says so clearly")
 
-        # Step 7: analytics reconcile.
         sign_in("Nisha")
-        nav("Insights")
-        expect(page.get_by_text("every dashboard total equals the raw stored event count")).to_be_visible(timeout=30000)
-        expect(page.get_by_text("Knowledge requests by language")).to_be_visible()
-        print("insights: reconciled")
+        page.goto(BASE + "/insights")
+        expect(page.get_by_text("matches the raw event count")).to_be_visible(timeout=30000)
+        page.get_by_role("button", name="90 days").click()
+        expect(page.get_by_text("Requests by language")).to_be_visible()
+        page.get_by_role("tab", name="Review effort").click()
+        expect(page.get_by_text("Review time per procedure and language")).to_be_visible()
+        print("console: insights reconciled for every period")
 
-        # Model A package.
         sign_in("Platform Admin")
-        nav("Packages (Model A)")
-        page.get_by_role("button", name="Export new package").click()
-        expect(page.get_by_role("heading", name="Package v1")).to_be_visible()
+        page.goto(BASE + "/packages")
+        page.get_by_role("button", name="Export package").click()
+        expect(toast.filter(has_text="Package 1 exported")).to_be_visible()
         with page.expect_download() as dl:
-            page.get_by_role("button", name="Download .zip").click()
-        assert dl.value.suggested_filename == "knowledge-package-v1.zip"
-        print("packages: exported and downloaded")
+            page.get_by_role("button", name="Download").first.click()
+        assert dl.value.suggested_filename == "swift-knowledge-package-v1.zip"
+        page.goto(BASE + "/activity")
+        expect(page.get_by_role("cell", name="Exported a knowledge package")).to_be_visible()
+        print("console: package exported, downloaded and logged")
 
-        # Persistence across reload, then reset.
-        page.reload()
-        expect(page.get_by_role("heading", name="Package v1")).to_be_visible(timeout=30000)
+        page.goto(BASE + "/packages")
+        expect(page.get_by_text("Package 1").first).to_be_visible(timeout=30000)
         page.get_by_role("button", name="Reset demo data").click()
-        page.get_by_role("button", name="Reset", exact=True).click()
-        expect(page.get_by_role("heading", name=re.compile("^Welcome"))).to_be_visible(timeout=30000)
-        nav("Packages (Model A)")
-        expect(page.get_by_text("No packages exported yet.")).to_be_visible()
-        print("persistence + reset ok")
+        page.get_by_role("dialog").get_by_role("button", name="Reset demo data").click()
+        expect(toast.filter(has_text="Demo data reset")).to_be_visible(timeout=60000)
+        page.goto(BASE + "/packages")
+        expect(page.get_by_text("No packages yet")).to_be_visible()
+        print("persistence across reloads, and reset, ok")
 
         browser.close()
     if problems:

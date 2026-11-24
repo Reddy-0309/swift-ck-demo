@@ -3,6 +3,7 @@ import { createRoot } from "react-dom/client";
 import { BrowserRouter } from "react-router-dom";
 import "@fontsource/noto-sans/400.css";
 import "@fontsource/noto-sans/600.css";
+import "@fontsource/noto-sans/700.css";
 import "@fontsource/noto-sans-kannada/400.css";
 import "@fontsource/noto-sans-kannada/600.css";
 import "@fontsource/noto-sans-tamil/400.css";
@@ -17,6 +18,7 @@ import "@fontsource/noto-sans-bengali/400.css";
 import "@fontsource/noto-sans-bengali/600.css";
 import { App } from "./App";
 import { EngineProvider } from "./app/engine";
+import { ToastProvider } from "./ui/kit";
 import "./styles.css";
 
 const root = document.getElementById("root");
@@ -26,7 +28,9 @@ createRoot(root).render(
   <StrictMode>
     <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <EngineProvider>
-        <App />
+        <ToastProvider>
+          <App />
+        </ToastProvider>
       </EngineProvider>
     </BrowserRouter>
   </StrictMode>,

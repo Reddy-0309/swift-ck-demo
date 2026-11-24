@@ -40,18 +40,29 @@ Alternatively, run `npx vercel --prod` from this folder.
 
 **Reset demo data** in the sidebar restores the original seeded state. Data is stored per browser, so each visitor gets their own copy.
 
-## Demo walkthrough (switch identity from the sidebar)
+## Two workspaces
 
-| Identity | Try |
+Sign in by choosing a person. Frontline workers land in the **Field app**, and the
+knowledge team lands in the **Console**.
+
+- **Field app** (phone-first, fully translated). Pick a task, answer one question about the situation if asked, and get the approved steps as safety signs, with slides, diagrams and audio. A **Practice** tab offers guided runs with hints and independent checks without them. If nothing approved fits, the app says so plainly and tells the worker who to ask.
+- **Console** (desktop). **Home** shows a "Waiting for you" inbox for the signed-in person. **Knowledge** has each procedure's content, languages, media and history. **Sources** handles SOP uploads. **Insights** shows usage over 7, 30 or 90 days, reconciled against the raw events. **Packages** exports content, and **Activity** is the audit log.
+
+The demo data covers 90 days of synthetic activity from 124 pseudonymous workers, about
+8,700 requests.
+
+## Try it
+
+| Person | What to try |
 |---|---|
-| **Arjun** (delivery associate) | **Ask:** task *Parcel pickup* in any of the 8 languages; situation *Leaking contents* (abstains); task *COD review* (refused); free-text questions in native script. **Practice:** guided vs independent, in any language. |
-| **Lakshmi** (maintenance technician) | **Ask:** *Conveyor daily inspection* with no asset (asks for it); with CV-1000 (HIGH-risk answer with slide, source diagram and localized annotated diagram). |
-| **Asha** (author) | **Studio:** download the sample *Pickup SOP r2* and upload it. Revision 2 suspends the published pickup knowledge and marks its media stale. Extract drafts; translate (codes, units and numbers are enforced); generate slides; attach narration; annotate the figure. |
-| **Vikram / Meera** (SMEs) | **Review:** resolve flags, classify risk, publish, withdraw, or start a new version. Self-approval is blocked. |
-| **Kavya** (bilingual reviewer) | Approve translations and localized media. |
-| **Ravi** (hazard checker) | Independent hazard check of warning, prohibition and escalation text. |
-| **Nisha** (analyst) | **Insights:** reconciled indicators with denominators, small-cell suppression and the documented SQL, plus review effort (AP-07). |
-| **Admin** | **Packages:** Model A export (general content only, with the withdrawn list and a schema-validated manifest); **Audit log**. |
+| **Arjun** (delivery) | Parcel pickup in any of the 8 languages; *Leaking contents* (no approved answer); search in native script; Practice. |
+| **Lakshmi** (maintenance) | Conveyor check: it asks which line, then shows the safety-critical steps with diagrams. |
+| **Asha** (author) | Sources: upload the sample *pickup SOP revision 2*. Live pickup guidance is suspended until the new version is approved. Create drafts, translate (codes, units and numbers are protected), and make slides. |
+| **Vikram / Meera** (subject experts) | Review and publish. You cannot approve your own work. |
+| **Kavya** (language reviewer) | Approve translations and translated media from the inbox. |
+| **Ravi** (safety checker) | Confirm safety text independently. |
+| **Nisha** (analyst) | Insights, with "How is this calculated?" on every figure. |
+| **Admin** | Export a package; read the activity log; reset demo data. |
 
 ## Structure
 
@@ -60,7 +71,7 @@ src/domain/   engine: governance, ingestion, extraction, delivery (C1→C2), ret
               media, practice, analytics, packaging, contracts (zod), labels (8 languages)
 src/seed/     synthetic fixtures, 8-language translations and scenario, seeding via the workflow
 src/app/      React ↔ engine bridge (boot, identity, actions, files)
-src/pages/    screens;  src/components/  shared UI
+src/layouts/  Field app and Console shells;  src/pages/  screens;  src/ui/  design system
 src/test/     vitest suites;  e2e/  browser end-to-end check
 ```
 

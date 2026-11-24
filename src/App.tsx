@@ -1,50 +1,65 @@
+import { lazy } from "react";
 import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useEngine } from "./app/engine";
-import { Layout } from "./components/Layout";
-import { AskPage } from "./pages/Ask";
-import { AuditPage } from "./pages/Audit";
-import { HomePage } from "./pages/Home";
-import { InsightsPage } from "./pages/Insights";
-import { LibraryPage } from "./pages/Library";
-import { LoginPage } from "./pages/Login";
-import { PackagesPage } from "./pages/Packages";
-import { PracticePage } from "./pages/Practice";
-import { ReviewPage } from "./pages/Review";
-import { SourceDetailPage } from "./pages/SourceDetail";
-import { StudioPage } from "./pages/Studio";
-import { VersionPage } from "./pages/version/VersionPage";
+import { workspaceOf, type Workspace } from "./app/people";
+import { ConsoleLayout } from "./layouts/ConsoleLayout";
+import { FieldLayout } from "./layouts/FieldLayout";
+import { SignInPage } from "./pages/SignIn";
 
-function RequireIdentity({ children }: { children: ReactNode }) {
+const FieldHome = lazy(() => import("./pages/field/FieldHome"));
+const FieldGuide = lazy(() => import("./pages/field/FieldGuide"));
+const FieldPractice = lazy(() => import("./pages/field/FieldPractice"));
+const Home = lazy(() => import("./pages/console/Home"));
+const KnowledgeList = lazy(() => import("./pages/console/KnowledgeList"));
+const KnowledgeDetail = lazy(() => import("./pages/console/knowledge/KnowledgeDetail"));
+const Sources = lazy(() => import("./pages/console/Sources"));
+const SourceDetail = lazy(() => import("./pages/console/SourceDetail"));
+const Insights = lazy(() => import("./pages/console/Insights"));
+const Packages = lazy(() => import("./pages/console/Packages"));
+const Activity = lazy(() => import("./pages/console/Activity"));
+
+/** Frontline workers use the field app; everyone else uses the console. */
+function Workspace({ is, children }: { is: Workspace; children: ReactNode }) {
   const { user } = useEngine();
-  if (!user) return <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/signin" replace />;
+  if (workspaceOf(user) !== is) return <Navigate to={is === "field" ? "/" : "/field"} replace />;
   return <>{children}</>;
 }
 
 export function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
+      <Route path="/signin" element={<SignInPage />} />
       <Route
+        path="/field"
         element={
-          <RequireIdentity>
-            <Layout />
-          </RequireIdentity>
+          <Workspace is="field">
+            <FieldLayout />
+          </Workspace>
         }
       >
-        <Route index element={<HomePage />} />
-        <Route path="ask" element={<AskPage />} />
-        <Route path="practice" element={<PracticePage />} />
-        <Route path="studio" element={<StudioPage />} />
-        <Route path="sources/:id" element={<SourceDetailPage />} />
-        <Route path="versions/:id" element={<VersionPage />} />
-        <Route path="review" element={<ReviewPage />} />
-        <Route path="library" element={<LibraryPage />} />
-        <Route path="insights" element={<InsightsPage />} />
-        <Route path="packages" element={<PackagesPage />} />
-        <Route path="audit" element={<AuditPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route index element={<FieldHome />} />
+        <Route path="guide" element={<FieldGuide />} />
+        <Route path="practice" element={<FieldPractice />} />
       </Route>
+      <Route
+        element={
+          <Workspace is="console">
+            <ConsoleLayout />
+          </Workspace>
+        }
+      >
+        <Route index element={<Home />} />
+        <Route path="knowledge" element={<KnowledgeList />} />
+        <Route path="knowledge/:id" element={<KnowledgeDetail />} />
+        <Route path="sources" element={<Sources />} />
+        <Route path="sources/:id" element={<SourceDetail />} />
+        <Route path="insights" element={<Insights />} />
+        <Route path="packages" element={<Packages />} />
+        <Route path="activity" element={<Activity />} />
+      </Route>
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

@@ -15,7 +15,7 @@ describe("analytics", () => {
     const store = await seededStore();
     const d = await dashboard(store.getState());
     expect(d.reconciliation.allMatch).toBe(true);
-    expect(d.dataLabel).toBe("SYNTHETIC DEMONSTRATION DATA");
+    expect(d.dataLabel).toBe("Synthetic demonstration data");
     const byLanguage = d.indicators.find((i) => i.id === "requests_by_language");
     expect(new Set(byLanguage?.rows.map((r) => r.keys.language))).toEqual(new Set(LANGUAGES));
     for (const i of d.indicators.filter((x) => x.breakdown)) {

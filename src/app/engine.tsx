@@ -9,7 +9,7 @@ import { purgeExpired, retentionCutoff, setWasmLocator } from "../domain/analyti
 import { can as canDo, principalOf, type Capability, type Principal } from "../domain/core";
 import { Store } from "../domain/store";
 import type { DemoState, User } from "../domain/types";
-import { seedDemo } from "../seed/seed";
+import { BrandGlyph } from "../ui/Brand";
 
 setWasmLocator(() => wasmUrl);
 
@@ -18,6 +18,7 @@ export const store = new Store();
 
 /** Build the demo data in a scratch store, then swap it in whole. */
 async function freshDemo(): Promise<void> {
+  const { seedDemo } = await import("../seed/seed"); // loaded only when demo data must be built
   const scratch = new Store({ persistence: false });
   await seedDemo(scratch);
   await store.adopt(scratch);
@@ -106,16 +107,26 @@ export function EngineProvider({ children }: { children: ReactNode }) {
   if (bootError) {
     return (
       <div className="boot" role="alert">
-        <h1>The demo could not start</h1>
-        <p>{bootError instanceof Error ? bootError.message : String(bootError)}</p>
+        <div>
+          <h1>Swift Knowledge could not start</h1>
+          <p>{bootError instanceof Error ? bootError.message : String(bootError)}</p>
+        </div>
       </div>
     );
   }
   if (!value) {
     return (
       <div className="boot" role="status">
-        <h1>Swift Contextual Knowledge</h1>
-        <p>Preparing synthetic demonstration data in your browser…</p>
+        <div>
+          <div className="brand-mark">
+            <BrandGlyph />
+          </div>
+          <h1>Swift Knowledge</h1>
+          <p>Loading your workspace…</p>
+          <div className="progress">
+            <span />
+          </div>
+        </div>
       </div>
     );
   }
